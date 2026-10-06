@@ -1,0 +1,319 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "import \"array\"\n\ncounted = from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_replication_partition\")\n  |> filter(fn: (r) => r._field == \"lag_offsets\")\n  |> filter(fn: (r) => r.topic =~ /^simulpix\\.transactions\\./)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group(columns: [\"topic\", \"partition\"])\n  |> max()\n  |> filter(fn: (r) => r._value > 0)\n  |> map(fn: (r) => ({_time: r._time, _value: 1}))\n  |> group()\n  |> sum()\n\nzero = array.from(rows: [{_time: now(), _value: 0}])\n\nunion(tables: [counted, zero])\n  |> max()\n  |> yield(name: \"count\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Partitions applicatives sous-répliquées",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_replication_partition\")\n  |> filter(fn: (r) => r._field == \"lag_offsets\")\n  |> filter(fn: (r) => r.topic =~ /^simulpix\\.transactions\\./)\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> group(columns: [\"topic\", \"partition\"])\n  |> yield(name: \"max\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Lag de réplication par partition",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"offline_partitions_count\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Partitions indisponibles par broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"active_controller_count\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Contrôleur actif du cluster",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "validated_sla_breaches"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "acceptées hors SLA / min"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejected_sla_breaches"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejetées hors SLA / min"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"validated_sla_breaches\" or r._field == \"rejected_sla_breaches\")\n  |> aggregateWindow(every: 1m, fn: last, createEmpty: false)\n  |> difference(nonNegative: true)\n  |> yield(name: \"delta_1m\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Décisions hors SLA par minute",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana",
+        "uid": "-- Grafana --"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 100,
+      "options": {
+        "content": "### Partitions applicatives sous-répliquées\nCe panneau indique combien de partitions métier `simulpix.transactions.*` n'ont pas encore tous leurs réplicas à jour. Une valeur non nulle signale une fragilité du cluster sur les topics réellement utilisés par l'application.\n\n### Lag de réplication par partition\nCe graphique montre quelles partitions applicatives répliquent mal et avec quel retard en offsets. Il sert à repérer rapidement si le problème est diffus ou concentré sur quelques partitions seulement.\n\n### Partitions indisponibles par broker\nCe panneau indique, broker par broker, s'il existe des partitions carrément indisponibles. On veut normalement rester à `0` en permanence.\n\n### Contrôleur actif du cluster\nCe panneau montre quel broker joue le rôle de contrôleur Kafka. En régime normal, un seul broker doit être à `1` et les autres à `0`.\n\n### Décisions hors SLA par minute\nCe panneau mesure, minute par minute, combien de décisions Pix sortent du délai attendu. Il permet de voir si un incident est encore en cours, au lieu de regarder un cumul historique.",
+        "mode": "markdown"
+      },
+      "title": "Aide de lecture",
+      "type": "text"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "simulpix",
+    "incidents"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "title": "Simul-Pix Incidents",
+  "uid": "simulpix-incidents",
+  "version": 12
+}

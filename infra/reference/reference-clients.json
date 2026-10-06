@@ -1,0 +1,44 @@
+[
+  {
+    "pix_client_id": "pixc-0001",
+    "tax_id": "TAX-0001",
+    "name": "Client 0001",
+    "status": "ACTIVE",
+    "accounts": ["acc-0001", "acc-0002"]
+  },
+  {
+    "pix_client_id": "pixc-0002",
+    "tax_id": "TAX-0002",
+    "name": "Client 0002",
+    "status": "ACTIVE",
+    "accounts": ["acc-0003", "acc-0004"]
+  },
+  {
+    "pix_client_id": "pixc-0003",
+    "tax_id": "TAX-0003",
+    "name": "Client 0003",
+    "status": "ACTIVE",
+    "accounts": ["acc-0005", "acc-0006"]
+  },
+  {
+    "pix_client_id": "pixc-0004",
+    "tax_id": "TAX-0004",
+    "name": "Client 0004",
+    "status": "ACTIVE",
+    "accounts": ["acc-0007", "acc-0008"]
+  },
+  {
+    "pix_client_id": "pixc-0005",
+    "tax_id": "TAX-0005",
+    "name": "Client 0005",
+    "status": "ACTIVE",
+    "accounts": ["acc-0009", "acc-0010"]
+  },
+  {
+    "pix_client_id": "pixc-0006",
+    "tax_id": "TAX-0006",
+    "name": "Client 0006",
+    "status": "ACTIVE",
+    "accounts": ["acc-0011", "acc-0012"]
+  }
+]

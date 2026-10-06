@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: Simul-Pix InfluxDB
+    uid: simulpix-influxdb
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: simulpix
+      defaultBucket: simulpix_observability
+      tlsSkipVerify: true
+    secureJsonData:
+      token: simulpix-observability-token

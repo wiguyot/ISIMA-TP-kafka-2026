@@ -1,0 +1,28 @@
+.env
+.DS_Store
+__pycache__/
+*.pyc
+runtime/current-run.env
+runtime/current-run.json
+runtime/current-network.json
+runtime/observability/*
+!runtime/observability/.gitkeep
+
+infra/kafka/secrets/*.jks
+infra/kafka/secrets/*.p12
+infra/kafka/secrets/*.pem
+infra/kafka/secrets/*.csr
+infra/kafka/secrets/*.srl
+infra/kafka/secrets/*_creds
+
+.venv/
+powerpoint-prepare/
+.claude
+graphify-out/
+
+# Vidéos générées et dépendances locales de l'outillage des TP
+outils/videos-tp/out/
+outils/videos-tp/node_modules/
+
+# Contexte machine local (NFS, docker group), pas du projet
+AGENTS.md

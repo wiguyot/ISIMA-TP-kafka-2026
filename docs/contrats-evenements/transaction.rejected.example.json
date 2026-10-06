@@ -1,0 +1,25 @@
+{
+  "transaction_id": "tx-20260318-000099",
+  "event_time": "2026-03-18T10:16:05Z",
+  "scenario_type": "invalid_amount",
+  "producer_id": "generator-03",
+  "trace_id": "trace-tx-20260318-000099",
+  "decision_deadline": "2026-03-18T10:16:10Z",
+  "decision_sla_seconds": 5,
+  "decision_status": "REJECTED",
+  "decision_reason_code": "BANK_REJECTED",
+  "decision_reason_label": "Paiement Pix rejeté par la banque : montant invalide",
+  "decision_origin": "BANK",
+  "decision_at": "2026-03-18T10:16:06Z",
+  "decision_latency_ms": 1000,
+  "decision_within_sla": true,
+  "client_message": "Paiement Pix rejeté par la banque : montant invalide",
+  "original_payload": {
+    "amount": -10,
+    "emitter_tax_id": "TAX-0012"
+  },
+  "rejection_type": "BUSINESS_VALIDATION",
+  "rejection_reason": "amount_must_be_positive",
+  "rejected_at": "2026-03-18T10:16:06Z",
+  "processing_node": "pix-decision-engine-01"
+}

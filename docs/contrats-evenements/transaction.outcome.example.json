@@ -1,0 +1,22 @@
+{
+  "transaction_id": "tx-20260318-000001",
+  "source_transaction_id": "tx-20260318-000001",
+  "retry_attempt": 0,
+  "event_time": "2026-03-18T10:15:30Z",
+  "scenario_type": "nominal",
+  "producer_id": "generator-01",
+  "trace_id": "trace-tx-20260318-000001",
+  "decision_status": "ACCEPTED",
+  "decision_reason_code": "ACCEPTED",
+  "decision_reason_label": "Paiement Pix accepté",
+  "decision_origin": "BANK",
+  "decision_at": "2026-03-18T10:15:31Z",
+  "decision_deadline": "2026-03-18T10:15:35Z",
+  "decision_sla_seconds": 5,
+  "decision_latency_ms": 1000,
+  "decision_within_sla": true,
+  "client_message": "Paiement Pix accepté",
+  "final_topic": "simulpix.transactions.validated",
+  "final_event_type": "PIX_TRANSACTION_OUTCOME",
+  "processing_node": "pix-outcome-publisher-01"
+}

@@ -1,0 +1,1523 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 101,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"under_replicated_partitions\")\n  |> group(columns: [\"broker\"])\n  |> last()\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({ r with _field: \"période affichée\" }))",
+          "refId": "A"
+        }
+      ],
+      "title": "Partitions sous-répliquées - période affichée",
+      "type": "stat",
+      "description": "Dernière valeur observée sur la période affichée."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 102,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_consumer_group\")\n  |> filter(fn: (r) => r._field == \"lag_total\")\n  |> group(columns: [\"group\"])\n  |> last()\n  |> group()\n  |> sum()\n  |> map(fn: (r) => ({ r with _field: \"période affichée\" }))",
+          "refId": "A"
+        }
+      ],
+      "title": "Lag consommateur en nombre de messages - période affichée",
+      "type": "stat",
+      "description": "Dernière valeur observée du lag consommateur total, compté en nombre de messages, sur la période affichée."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 103,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"estimated_oldest_lag_seconds\")\n  |> last()\n  |> map(fn: (r) => ({ r with _field: \"période affichée\" }))",
+          "refId": "A"
+        }
+      ],
+      "title": "Ancienneté backlog - période affichée",
+      "type": "stat",
+      "description": "Dernière valeur observée sur la période affichée."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 4
+      },
+      "id": 104,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"under_replicated_partitions\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group()\n  |> sum()\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"max 5 min\" }))",
+          "refId": "B"
+        }
+      ],
+      "title": "Partitions sous-répliquées - max 5 min",
+      "type": "stat",
+      "description": "Maximum observé des partitions sous-répliquées sur les 5 dernières minutes."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 4
+      },
+      "id": 105,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"kafka_consumer_group\")\n  |> filter(fn: (r) => r._field == \"lag_total\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group()\n  |> sum()\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"max 5 min\" }))",
+          "refId": "B"
+        }
+      ],
+      "title": "Lag consommateur en nombre de messages - max 5 min",
+      "type": "stat",
+      "description": "Maximum observé du lag consommateur total, compté en nombre de messages, sur les 5 dernières minutes."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "id": 106,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"estimated_oldest_lag_seconds\")\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"max 5 min\" }))",
+          "refId": "B"
+        }
+      ],
+      "title": "Ancienneté backlog - max 5 min",
+      "type": "stat",
+      "description": "Maximum observé de l'ancienneté du backlog sur les 5 dernières minutes."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "id": 107,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"under_replicated_partitions\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group()\n  |> sum()\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"max 30 min\" }))",
+          "refId": "C"
+        }
+      ],
+      "title": "Partitions sous-répliquées - max 30 min",
+      "type": "stat",
+      "description": "Maximum observé des partitions sous-répliquées sur les 30 dernières minutes."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 108,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"kafka_consumer_group\")\n  |> filter(fn: (r) => r._field == \"lag_total\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> group()\n  |> sum()\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"max 30 min\" }))",
+          "refId": "C"
+        }
+      ],
+      "title": "Lag consommateur en nombre de messages - max 30 min",
+      "type": "stat",
+      "description": "Maximum observé du lag consommateur total, compté en nombre de messages, sur les 30 dernières minutes."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 109,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"estimated_oldest_lag_seconds\")\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"max 30 min\" }))",
+          "refId": "C"
+        }
+      ],
+      "title": "Ancienneté backlog - max 30 min",
+      "type": "stat",
+      "description": "Maximum observé de l'ancienneté du backlog sur les 30 dernières minutes."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "lineWidth": 0
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"active_controller_count\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: string(v: r.broker) }))\n  |> group(columns: [\"_field\"])\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Controleur actif du cluster",
+      "type": "timeseries",
+      "description": "Montre quel broker porte le rôle de contrôleur actif sur la période affichée.",
+      "pluginVersion": "11.1.0"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "lineWidth": 0
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 12
+      },
+      "id": 111,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"under_replicated_partitions\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: string(v: r.broker) }))\n  |> group(columns: [\"_field\"])\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Partitions sous-répliquées",
+      "type": "timeseries",
+      "description": "Nombre de partitions sous-répliquées vu par chaque broker sur la période affichée.",
+      "pluginVersion": "11.1.0"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "lineWidth": 0
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "id": 112,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_broker\")\n  |> filter(fn: (r) => r._field == \"offline_partitions_count\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: string(v: r.broker) }))\n  |> group(columns: [\"_field\"])\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Partitions offline",
+      "type": "timeseries",
+      "description": "Nombre de partitions offline vu par chaque broker sur la période affichée.",
+      "pluginVersion": "11.1.0"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_replication_partition\")\n  |> filter(fn: (r) => r._field == \"lag_offsets\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: string(v: r.topic) + \" p\" + string(v: r.partition) }))\n  |> group(columns: [\"_field\"])\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])\n  |> yield(name: \"max\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Retard de réplication",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pix-validator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "pix-validator"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pix-decision-engine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "pix-decision-engine"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pix-outcome-publisher"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "pix-outcome-publisher"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_consumer_group\")\n  |> filter(fn: (r) => r._field == \"lag_total\")\n  |> filter(fn: (r) => r.group == \"pix-validator\" or r.group == \"pix-decision-engine\" or r.group == \"pix-outcome-publisher\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: string(v: r.group) }))\n  |> group(columns: [\"_field\"])\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Retard par étapes générales",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "simulpix.transactions.raw"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "raw"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "simulpix.transactions.validated"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "validated"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "simulpix.transactions.rejected"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejected"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "simulpix.transactions.retry"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "retry"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "simulpix.transactions.outcome"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "outcome"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"kafka_topic\")\n  |> filter(fn: (r) => r._field == \"end_offsets_total\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> map(fn: (r) => ({ r with _field: string(v: r.topic) }))\n  |> group(columns: [\"_field\"])\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Volume observé par topic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "Réglage d’acknowledgement réellement appliqué côté publication Kafka.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 2
+              }
+            ]
+          },
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "0"
+                },
+                "1": {
+                  "text": "1"
+                },
+                "2": {
+                  "text": "all"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 36
+      },
+      "id": 113,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_semantics\")\n  |> filter(fn: (r) => r._field == \"producer_acks_code\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Acks Kafka actifs",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "Nombre de retries réellement configuré côté publication Kafka.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 1
+              },
+              {
+                "color": "orange",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 36
+      },
+      "id": 114,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_semantics\")\n  |> filter(fn: (r) => r._field == \"producer_retries\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Retries Kafka actifs",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "Moment du commit Kafka côté consommation.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 2
+              },
+              {
+                "color": "purple",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Avant traitement"
+                },
+                "2": {
+                  "text": "Après traitement"
+                },
+                "3": {
+                  "text": "Transaction Kafka"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 36
+      },
+      "id": 115,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_semantics\")\n  |> filter(fn: (r) => r._field == \"consumer_commit_strategy_code\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Commit SUB actif",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "État réel de l’auto-commit Kafka côté consommation.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "off"
+                },
+                "1": {
+                  "text": "on"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "id": 116,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_semantics\")\n  |> filter(fn: (r) => r._field == \"consumer_auto_commit_code\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Auto commit SUB",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "Nombre d'étapes Kafka -> Kafka actuellement en transaction Kafka dans la chaîne de traitement.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "0 / 3"
+                },
+                "1": {
+                  "text": "1 / 3"
+                },
+                "2": {
+                  "text": "2 / 3"
+                },
+                "3": {
+                  "text": "3 / 3"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 40
+      },
+      "id": 117,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_semantics\")\n  |> filter(fn: (r) => r._field == \"kafka_exactly_once_chain_count\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Étapes en transaction Kafka",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "Compteur métier logique des résultats finaux publiés. Ce chiffre ne compte pas les marqueurs techniques de transaction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 40
+      },
+      "id": 118,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"outcome_count\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Résultats finaux logiques",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "description": "Offset technique du topic outcome. En transaction Kafka, cette valeur peut être supérieure au compteur logique car le log contient aussi des marqueurs de transaction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "id": 119,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"kafka_topic\")\n  |> filter(fn: (r) => r.topic == \"simulpix.transactions.outcome\")\n  |> filter(fn: (r) => r._field == \"end_offsets_total\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Topic outcome : offset technique",
+      "type": "stat"
+    },
+    {
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 110,
+      "options": {
+        "content": "## Aide à la lecture\n\n**Partitions sous-répliquées** : santé interne du cluster Kafka. Cette métrique compte les partitions dont tous les réplicas ne sont pas à jour derrière le leader. Elle parle de réplication entre brokers, pas directement du retard applicatif.\n\n**Lag consommateur total** : retard cumulé des consommateurs applicatifs. Il mesure combien de messages sont déjà présents dans Kafka mais pas encore lus et commit par les groupes suivis.\n\n**Lag des étapes pédagogiques** : ce panneau suit explicitement les trois groupes de la chaîne split : `pix-validator`, `pix-decision-engine` et `pix-outcome-publisher`. Il permet de localiser immédiatement l'étape qui accumule le retard.\n\n**Ancienneté backlog** : lecture temporelle du lag. Au lieu de dire seulement qu'il reste `X` messages, cette métrique essaie de dire depuis combien de temps le plus vieux retard visible existe. C'est une estimation : elle devient plus ou moins fiable selon la stabilité du débit.\n\n**Résultats finaux logiques** : compteur métier. Il correspond au nombre réel de messages d'outcome visibles par l'atelier.\n\n**Topic outcome : offset technique** : volume du log Kafka. En mode transactionnel, il peut être supérieur au compteur logique car il contient aussi des marqueurs techniques de transaction.\n\nLecture simple :\n- si les partitions sous-répliquées montent, on parle d'abord de réplication Kafka ;\n- si le lag consommateur monte, on parle d'abord de retard des applications ;\n- si un seul groupe pédagogique monte, l'étape correspondante concentre le retard ;\n- si l'ancienneté backlog monte aussi, ce retard commence à se transformer en délai concret ;\n- si `Résultats finaux logiques` et `offset technique` divergent, on observe un topic transactionnel Kafka, pas une perte métier.\n\nLe haut du dashboard se lit en trois temps : `période affichée`, `max 5 min`, `max 30 min`. Exemple : `période affichée = 0` et `max 30 min = 74` signifie qu'il n'y a plus de sous-réplication à la fin de la période observée, mais qu'un pic a bien atteint 74 dans les 30 dernières minutes.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.1.0",
+      "title": "Aide de lecture",
+      "type": "text"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "simulpix",
+    "kafka",
+    "cluster",
+    "influxdb"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "title": "Simul-Pix - Kafka Dashboard",
+  "uid": "simulpix-kafka",
+  "version": 10
+}

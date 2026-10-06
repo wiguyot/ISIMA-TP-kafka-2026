@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Simul-Pix Dashboards
+    orgId: 1
+    folder: Simul-Pix
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

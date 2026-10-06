@@ -1,0 +1,1629 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "content": "La persistance, c'est le moment où un événement ne vit plus seulement dans Kafka ou dans la mémoire d'un service, mais devient une trace durable en base de données.\n\nCe dashboard sert à vérifier deux choses : ce qui a vraiment été écrit dans PostgreSQL et s'il existe un retard ou un écart entre le flux traité et le flux durable.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.1.0",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "persistence_gap_valid"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "écart validés Kafka => BDD"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "persistence_gap_rejected"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "écart rejetés Kafka => BDD"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_valid\" or r._field == \"persistence_gap_rejected\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Écarts Kafka => BDD",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "validated_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "lignes PostgreSQL valides / s"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejected_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "lignes PostgreSQL rejetees / s"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 3
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"postgres_runtime\")\n  |> filter(fn: (r) => r._field == \"validated_count\" or r._field == \"rejected_count\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> derivative(unit: 1s, nonNegative: true)\n  |> yield(name: \"rate\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Débit d'écriture PostgreSQL (lignes/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_validation_latency_ms"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "latence moyenne validation"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_rejection_latency_ms"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "latence moyenne rejet"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"avg_validation_latency_ms\" or r._field == \"avg_rejection_latency_ms\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Temps moyen des dernières écritures entre l'événement Pix et l'écriture en BDD",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "validated_within_sla_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "acceptées SLA"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "validated_sla_breaches"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "acceptées hors SLA"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejected_within_sla_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejetées SLA"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejected_sla_breaches"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejetées hors SLA"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"validated_within_sla_count\" or r._field == \"validated_sla_breaches\" or r._field == \"rejected_within_sla_count\" or r._field == \"rejected_sla_breaches\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Décisions SLA / hors SLA",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "persistence_gap_valid"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "valide BDD act."
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 8,
+        "h": 4
+      },
+      "id": 200,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_valid\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Écart Kafka => BDD - valide actuel",
+      "type": "stat",
+      "description": "Nombre actuel de validations traitées mais pas encore écrites dans PostgreSQL."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "persistence_gap_rejected"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejet BDD act."
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 19,
+        "w": 8,
+        "h": 4
+      },
+      "id": 201,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_rejected\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Écart Kafka => BDD - rejet actuel",
+      "type": "stat",
+      "description": "Nombre actuel de rejets traités mais pas encore écrits dans PostgreSQL."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ecart valide max 5 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "valide 5m"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 19,
+        "w": 8,
+        "h": 4
+      },
+      "id": 202,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_valid\")\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"ecart valide max 5 min\" }))",
+          "refId": "B"
+        }
+      ],
+      "title": "Écart Kafka => BDD - valide 5m",
+      "type": "stat",
+      "description": "Écarts actuels et maximums observés sur 5 et 30 minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ecart rejet max 5 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejet 5m"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 8,
+        "h": 4
+      },
+      "id": 203,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_rejected\")\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"ecart rejet max 5 min\" }))",
+          "refId": "C"
+        }
+      ],
+      "title": "Écart Kafka => BDD - rejet 5m",
+      "type": "stat",
+      "description": "Écarts actuels et maximums observés sur 5 et 30 minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ecart valide max 30 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "valide 30m"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 23,
+        "w": 8,
+        "h": 4
+      },
+      "id": 204,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_valid\")\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"ecart valide max 30 min\" }))",
+          "refId": "D"
+        }
+      ],
+      "title": "Écart Kafka => BDD - valide 30m",
+      "type": "stat",
+      "description": "Écarts actuels et maximums observés sur 5 et 30 minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ecart rejet max 30 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejet 30m"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 23,
+        "w": 8,
+        "h": 4
+      },
+      "id": 205,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"persistence_gap_rejected\")\n  |> max()\n  |> map(fn: (r) => ({ r with _field: \"ecart rejet max 30 min\" }))",
+          "refId": "E"
+        }
+      ],
+      "title": "Écart Kafka => BDD - rejet 30m",
+      "type": "stat",
+      "description": "Écarts actuels et maximums observés sur 5 et 30 minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db_validated_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "valides BDD"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 8,
+        "h": 4
+      },
+      "id": 206,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"db_validated_count\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "PostgreSQL - valides total",
+      "type": "stat",
+      "description": "Nombre total actuel de lignes valides déjà écrites dans PostgreSQL."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db_rejected_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejetes BDD"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 27,
+        "w": 8,
+        "h": 4
+      },
+      "id": 207,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"db_rejected_count\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "PostgreSQL - rejetés total",
+      "type": "stat",
+      "description": "Nombre total actuel de lignes rejetées déjà écrites dans PostgreSQL."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "valide 5 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "valides 5m"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 27,
+        "w": 8,
+        "h": 4
+      },
+      "id": 208,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"db_validated_count\")\n  |> spread()\n  |> map(fn: (r) => ({ r with _field: \"valide 5 min\" }))",
+          "refId": "B"
+        }
+      ],
+      "title": "PostgreSQL - valides 5m",
+      "type": "stat",
+      "description": "Totaux actuels en base, puis lignes écrites sur les 5 et 30 dernières minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejete 5 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejetes 5m"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 8,
+        "h": 4
+      },
+      "id": 209,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"db_rejected_count\")\n  |> spread()\n  |> map(fn: (r) => ({ r with _field: \"rejete 5 min\" }))",
+          "refId": "C"
+        }
+      ],
+      "title": "PostgreSQL - rejetés 5m",
+      "type": "stat",
+      "description": "Totaux actuels en base, puis lignes écrites sur les 5 et 30 dernières minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "valide 30 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "valides 30m"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 31,
+        "w": 8,
+        "h": 4
+      },
+      "id": 210,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"db_validated_count\")\n  |> spread()\n  |> map(fn: (r) => ({ r with _field: \"valide 30 min\" }))",
+          "refId": "D"
+        }
+      ],
+      "title": "PostgreSQL - valides 30m",
+      "type": "stat",
+      "description": "Totaux actuels en base, puis lignes écrites sur les 5 et 30 dernières minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejete 30 min"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "rejetes 30m"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 31,
+        "w": 8,
+        "h": 4
+      },
+      "id": 211,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: -30m)\n  |> filter(fn: (r) => r._measurement == \"simulpix_platform\")\n  |> filter(fn: (r) => r._field == \"db_rejected_count\")\n  |> spread()\n  |> map(fn: (r) => ({ r with _field: \"rejete 30 min\" }))",
+          "refId": "E"
+        }
+      ],
+      "title": "PostgreSQL - rejetés 30m",
+      "type": "stat",
+      "description": "Totaux actuels en base, puis lignes écrites sur les 5 et 30 dernières minutes pour les flux valides et rejetés."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "database_size_bytes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "taille BDD"
+              },
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 8,
+        "h": 4
+      },
+      "id": 213,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"postgres_runtime\")\n  |> filter(fn: (r) => r._field == \"database_size_bytes\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "BDD - taille",
+      "type": "stat",
+      "description": "Taille actuelle de la base PostgreSQL."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "validated_table_size_bytes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "taille valides"
+              },
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 35,
+        "w": 8,
+        "h": 4
+      },
+      "id": 214,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"postgres_runtime\")\n  |> filter(fn: (r) => r._field == \"validated_table_size_bytes\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "table des Pix validés PostgreSQL",
+      "type": "stat",
+      "description": "Taille actuelle de la table des validations."
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "simulpix-influxdb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rejected_table_size_bytes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "taille rejetes"
+              },
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 35,
+        "w": 8,
+        "h": 4
+      },
+      "id": 215,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "simulpix-influxdb"
+          },
+          "query": "from(bucket: \"simulpix_observability\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"postgres_runtime\")\n  |> filter(fn: (r) => r._field == \"rejected_table_size_bytes\")\n  |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "table des Pix rejetés PostgreSQL",
+      "type": "stat",
+      "description": "Taille actuelle de la table des rejets."
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "simulpix",
+    "persistence",
+    "postgres",
+    "influxdb"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "title": "Simul-Pix - Persistence Dashboard",
+  "uid": "simulpix-persistence",
+  "version": 30
+}

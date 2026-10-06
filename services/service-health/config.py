@@ -1,0 +1,322 @@
+from __future__ import annotations
+
+from typing import Any
+
+
+ALLOWED_SCENARIOS = {"nominal", "errors_simple", "mixed", "consumer_lag", "replication_lag", "football_match_peak"}
+ALLOWED_TRAFFIC_MODELS = {"linear", "poisson", "bursty"}
+ALLOWED_PRODUCER_SEMANTICS = {"at_most_once", "at_least_once", "exactly_once", "custom"}
+ALLOWED_CONSUMER_SEMANTICS = {"at_most_once", "at_least_once", "exactly_once_kafka", "custom"}
+
+NETWORK_PROFILES: dict[str, dict[str, Any]] = {
+    "kafka_latency": {
+        "title": "Latence Kafka",
+        "summary": "Ajoute une latence artificielle sur le service cible afin d'observer les effets sur les lectures ou ecritures Kafka.",
+        "defaults": {"target_service": "pix-decision-engine", "delay_ms": "250", "jitter_ms": "40", "loss_percent": "0", "rate_kbit": "0"},
+    },
+    "kafka_loss": {
+        "title": "Perte reseau Kafka",
+        "summary": "Injecte de la perte reseau pour discuter des retries, des acknowledgements et du comportement en degradation.",
+        "defaults": {"target_service": "generator", "delay_ms": "120", "jitter_ms": "20", "loss_percent": "8", "rate_kbit": "0"},
+    },
+    "kafka_slow_link": {
+        "title": "Lien Kafka bride",
+        "summary": "Limite le debit reseau disponible afin de faire apparaitre des retards progressifs et une montee du backlog.",
+        "defaults": {"target_service": "pix-decision-engine", "delay_ms": "80", "jitter_ms": "20", "loss_percent": "0", "rate_kbit": "256"},
+    },
+}
+
+TP_CATALOG: list[dict[str, str]] = [
+    {
+        "title": "Activité 01 - Decouverte de l'architecture",
+        "summary": "Identifier les services, topics, producteurs, consommateurs et vues d'observabilite.",
+        "guide_path": "TP/activite-01-decouverte-architecture.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "20",
+        "rate_per_second": "5",
+        "traffic_model": "linear",
+    },
+    {
+        "title": "Activité 02 - Premiere publication de transactions",
+        "summary": "Observer le producteur `generator`, la cle Kafka et les messages JSON dans `raw`.",
+        "guide_path": "TP/activite-02-premiers-messages-kafka.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "10",
+        "rate_per_second": "2",
+        "traffic_model": "linear",
+    },
+    {
+        "title": "Activité 03 - Semantique PUB/SUB",
+        "summary": "Montrer que plusieurs groupes consommateurs peuvent lire les memes messages independamment.",
+        "guide_path": "TP/activite-03-semantique-pub-sub.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "12",
+        "rate_per_second": "3",
+        "traffic_model": "linear",
+    },
+    {
+        "title": "Activité 04 - Consumer groups Kafka",
+        "summary": "Lire les groupes, partitions, offsets et comprendre le partage dans un meme groupe.",
+        "guide_path": "TP/activite-04-groupes-consommateurs.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "30",
+        "rate_per_second": "5",
+        "traffic_model": "poisson",
+    },
+    {
+        "title": "Activité 05 - Partitionnement par cle metier",
+        "summary": "Relier `emitter_tax_id`, partition Kafka et ordre relatif des paiements d'un emetteur.",
+        "guide_path": "TP/activite-05-partitionnement-cle-emetteur.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "30",
+        "rate_per_second": "5",
+        "traffic_model": "linear",
+    },
+    {
+        "title": "Activité 06 - Offsets, reprise et rejeu",
+        "summary": "Comprendre qu'un message lu reste dans Kafka et que chaque groupe garde sa progression.",
+        "guide_path": "TP/activite-06-rejeu-offsets-retention.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "20",
+        "rate_per_second": "4",
+        "traffic_model": "linear",
+    },
+    {
+        "title": "Activité 07 - Rejets, erreurs et DLQ",
+        "summary": "Produire des messages invalides et observer le topic de rejet `rejected`.",
+        "guide_path": "TP/activite-07-rejets-dlq.md",
+        "category": "basic",
+        "scenario": "errors_simple",
+        "total_messages": "20",
+        "rate_per_second": "10",
+        "traffic_model": "poisson",
+    },
+    {
+        "title": "Activité 08 - Metrologie et meteo des services",
+        "summary": "Lire la meteo, les dashboards Grafana et les indicateurs de lag, debit et erreurs.",
+        "guide_path": "TP/activite-08-observabilite-metrologie.md",
+        "category": "basic",
+        "scenario": "nominal",
+        "total_messages": "100",
+        "rate_per_second": "10",
+        "traffic_model": "poisson",
+    },
+    {
+        "title": "Activité 09 - Montee en charge et temporisation",
+        "summary": "Faire monter le lag avec `consumer_lag` et relier charge, retard et SLA metier.",
+        "guide_path": "TP/activite-09-charge-et-temporisation.md",
+        "category": "basic",
+        "scenario": "consumer_lag",
+        "total_messages": "120",
+        "rate_per_second": "80",
+        "traffic_model": "poisson",
+    },
+    {
+        "title": "Activité 10 - Synthese architecture evenementielle",
+        "summary": "Reconstituer le chemin complet d'une transaction Pix et expliquer les compromis Kafka.",
+        "guide_path": "TP/activite-10-synthese-architecture-evenementielle.md",
+        "category": "basic",
+        "scenario": "mixed",
+        "total_messages": "60",
+        "rate_per_second": "20",
+        "traffic_model": "bursty",
+    },
+    {
+        "title": "TP 01 - Semantique at-most-once",
+        "summary": "Provoquer les pertes cote PUB et SUB, puis lire les ecarts entre attendu, Kafka et PostgreSQL.",
+        "guide_path": "TP/tp-01-at-most-once.md",
+        "category": "semantic",
+        "scenario": "nominal",
+        "total_messages": "6000",
+        "rate_per_second": "50",
+        "traffic_model": "poisson",
+        "producer_semantics": "at_most_once",
+        "consumer_semantics": "at_most_once",
+    },
+    {
+        "title": "TP 02 - Semantique at-least-once",
+        "summary": "Provoquer les doublons cote PUB et SUB, puis comprendre ce qui les absorbe.",
+        "guide_path": "TP/tp-02-at-least-once.md",
+        "category": "semantic",
+        "scenario": "nominal",
+        "total_messages": "6000",
+        "rate_per_second": "50",
+        "traffic_model": "poisson",
+        "producer_semantics": "at_least_once",
+        "consumer_semantics": "at_least_once",
+    },
+    {
+        "title": "TP 03 - Semantique exactly-once",
+        "summary": "Demontrer la protection exactly-once Kafka, sa limite PostgreSQL et son cout en debit.",
+        "guide_path": "TP/tp-03-exactly-once.md",
+        "category": "semantic",
+        "scenario": "nominal",
+        "total_messages": "600",
+        "rate_per_second": "50",
+        "traffic_model": "linear",
+        "producer_semantics": "exactly_once",
+        "consumer_semantics": "exactly_once_kafka",
+        "decision_sla_seconds": "10",
+    },
+    {
+        "title": "TP 04 - ksqlDB",
+        "summary": "Interroger le flux Pix en SQL avec ksqlDB (./scripts/ksql.sh) : filtrer, agreger, fenetrer, joindre.",
+        "guide_path": "TP/tp-04-ksqldb.md",
+        "category": "semantic",
+        "scenario": "nominal",
+        "total_messages": "600",
+        "rate_per_second": "10",
+        "traffic_model": "linear",
+        "producer_semantics": "at_least_once",
+        "consumer_semantics": "at_least_once",
+    },
+]
+
+ADVANCED_TP_CATALOG: list[dict[str, str]] = [
+    {
+        "title": "Atelier avance - Flux nominal",
+        "summary": "Lecture detaillee du pipeline nominal et des indicateurs metier.",
+        "guide_path": "TP/pour-aller-plus-loin/partie-1-flux-nominal.md",
+    },
+    {
+        "title": "Atelier avance - Rejets metier simples",
+        "summary": "Analyse detaillee des rejets `validated` contre `rejected`.",
+        "guide_path": "TP/pour-aller-plus-loin/partie-2-rejets-metier-simples.md",
+    },
+    {
+        "title": "Atelier avance - Retard consommateur",
+        "summary": "Observation prolongee du lag consommateur et des rejets de delai.",
+        "guide_path": "TP/pour-aller-plus-loin/partie-3-retard-consommateur.md",
+    },
+    {
+        "title": "Atelier avance - Replication Kafka",
+        "summary": "Incident controle sur broker et lecture des partitions sous-repliquees.",
+        "guide_path": "TP/pour-aller-plus-loin/partie-4-retard-de-replication-kafka.md",
+    },
+    {
+        "title": "Atelier avance - Pic de paiements football",
+        "summary": "Charge compressee, phase baseline, pic court et lecture Grafana.",
+        "guide_path": "TP/pour-aller-plus-loin/partie-5-pic-de-paiements-football.md",
+    },
+    {
+        "title": "Atelier avance - Perturbation reseau Kafka",
+        "summary": "Injection de latence, perte ou bridage reseau sur un service cible.",
+        "guide_path": "TP/pour-aller-plus-loin/partie-6-perturbation-reseau-kafka.md",
+    },
+    {
+        "title": "Atelier avance - Semantiques Kafka",
+        "summary": "Comparaison `at most once`, `at least once` et `exactly_once_kafka`.",
+        "guide_path": "TP/pour-aller-plus-loin/atelier-semantique-kafka.md",
+    },
+]
+
+SCENARIO_CATALOG: dict[str, dict[str, Any]] = {
+    "nominal": {
+        "title": "Activité 01-03 : flux nominal Kafka",
+        "summary": "Flux valide court pour decouvrir l'architecture, publier des transactions et lire le modele PUB/SUB.",
+        "focus": [
+            "traversee complete du pipeline",
+            "stabilite des groupes consommateurs",
+            "alignement Kafka / PostgreSQL",
+        ],
+        "observed_notes": [
+            "Validation terrain : 100 / 100 / 100 / 0 avec outcome_count=100 et db_validated_count=100.",
+            "Lecture utile : observer aussi la montee initiale des messages produits avant la convergence complete.",
+        ],
+        "guide_path": "TP/activite-01-decouverte-architecture.md",
+        "defaults": {"total_messages": "", "rate_per_second": "", "producer_acks": "all", "producer_retries": "", "decision_sla_seconds": "10", "validator_workers": "1", "decision_engine_workers": "1", "traffic_model": "poisson"},
+    },
+    "errors_simple": {
+        "title": "Activité 07 : rejets, erreurs et DLQ",
+        "summary": "Cas de rejet metier pour mettre en evidence la validation, le routage vers rejected et la persistance des erreurs.",
+        "focus": [
+            "taux de rejet",
+            "motifs de rejet",
+            "difference entre validated et rejected",
+        ],
+        "observed_notes": [
+            "Validation terrain : avec 20 messages, le scenario observe a produit 20 rejets et 0 acceptation.",
+            "Lecture utile : s'attendre a une alerte de taux de rejet eleve, sans panne Kafka ni PostgreSQL.",
+        ],
+        "guide_path": "TP/activite-07-rejets-dlq.md",
+        "defaults": {"total_messages": "", "rate_per_second": "", "producer_acks": "all", "producer_retries": "", "decision_sla_seconds": "10", "validator_workers": "1", "decision_engine_workers": "1", "traffic_model": "poisson"},
+    },
+    "mixed": {
+        "title": "Activité 10 : synthese avec flux mixte",
+        "summary": "Flux melangeant succes et erreurs pour observer la repartition des traitements sur une charge heterogene.",
+        "focus": [
+            "coexistence de messages valides et rejetes",
+            "variations du taux de rejet",
+            "impact sur la persistance",
+        ],
+        "guide_path": "TP/activite-10-synthese-architecture-evenementielle.md",
+        "defaults": {"total_messages": "", "rate_per_second": "", "producer_acks": "all", "producer_retries": "", "decision_sla_seconds": "10", "validator_workers": "1", "decision_engine_workers": "1", "traffic_model": "bursty"},
+    },
+    "consumer_lag": {
+        "title": "Activité 09 : montee en charge et temporisation",
+        "summary": "Producteurs rapides et consommateurs ralentis pour faire apparaitre un lag Kafka durable et observable.",
+        "focus": [
+            "lag consommateur",
+            "anciennete du backlog",
+            "effets sur le debit traite",
+        ],
+        "observed_notes": [
+            "Validation terrain : sur 120 messages, 10 acceptations puis 110 rejets processing_timeout apres drainage complet.",
+            "Lecture utile : regarder le backlog pendant la montee, puis les rejets de delai quand le SLA est depasse.",
+        ],
+        "guide_path": "TP/activite-09-charge-et-temporisation.md",
+        "defaults": {"total_messages": "", "rate_per_second": "", "producer_acks": "all", "producer_retries": "", "decision_sla_seconds": "10", "validator_workers": "1", "decision_engine_workers": "1", "traffic_model": "poisson"},
+    },
+    "replication_lag": {
+        "title": "Pour aller plus loin : retard de replication Kafka",
+        "summary": "Incident controle sur un broker pour mettre en evidence les partitions sous-repliquees et le retard de replication.",
+        "focus": [
+            "under replicated partitions",
+            "lag de replication par partition",
+            "etat des brokers",
+        ],
+        "observed_notes": [
+            "Lecture utile : observer la partie pendant l'incident, car la fin du scenario peut deja etre revenue a l'etat nominal.",
+            "Validation terrain : le flux final converge typiquement vers 400 / 400 / 400 / 0 apres resynchronisation.",
+        ],
+        "guide_path": "TP/pour-aller-plus-loin/partie-4-retard-de-replication-kafka.md",
+        "defaults": {"total_messages": "", "rate_per_second": "", "producer_acks": "all", "producer_retries": "", "decision_sla_seconds": "10", "validator_workers": "1", "decision_engine_workers": "1", "traffic_model": "poisson"},
+    },
+    "football_match_peak": {
+        "title": "Pour aller plus loin : pic de paiements football",
+        "summary": "Afflux massif de paiements Pix concentres autour de rencontres de football bresilien avec compression temporelle pedagogique.",
+        "focus": [
+            "montee en charge progressive puis pic court",
+            "effets de la compression temporelle",
+            "observation du debit en phase baseline puis peak",
+        ],
+        "observed_notes": [
+            "Lecture utile : ne pas attendre la fin du scenario ; la phase baseline est deja instructive.",
+            "Validation terrain : apres environ 30 secondes, le generateur etait encore en baseline avec 178 / 15400 messages emis sur cette phase.",
+        ],
+        "guide_path": "TP/pour-aller-plus-loin/partie-5-pic-de-paiements-football.md",
+        "defaults": {
+            "total_messages": "22000",
+            "rate_per_second": "1",
+            "match_count": "10",
+            "stadium_capacity": "44000",
+            "pix_usage_rate": "0.05",
+            "peak_share": "0.30",
+            "peak_window_minutes": "15",
+            "total_window_minutes": "240",
+            "time_compression_factor": "10",
+            "producer_acks": "all",
+            "producer_retries": "",
+            "decision_sla_seconds": "10",
+            "validator_workers": "1",
+            "decision_engine_workers": "1",
+            "traffic_model": "bursty",
+        },
+    },
+}
