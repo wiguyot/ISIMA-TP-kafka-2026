@@ -25,6 +25,10 @@ Versionnez ou faites évoluer un contrat du répertoire `docs/contrats-evenement
 
 ## Actions à réaliser
 
+Avant toute modification, formulez votre garantie cible en une phrase, sous la forme : « [le comportement] ne doit pas [l'effet indésirable], prouvé par [la mesure] ».
+
+Ensuite, vous devez :
+
 1. Choisissez l'événement à faire évoluer : `raw`, `validated`, `rejected` ou `outcome`.
 2. Décrivez le contrat actuel avec les champs obligatoires, facultatifs et les identifiants utilisés.
 3. Écrivez le contrat cible et la règle de compatibilité : que doit faire un consommateur si le nouveau champ est absent ou inconnu ?
@@ -40,6 +44,10 @@ Versionnez ou faites évoluer un contrat du répertoire `docs/contrats-evenement
 - Comment un consommateur doit-il réagir à un champ inconnu ou absent ?
 - Quelles données doivent aussi évoluer dans PostgreSQL ?
 - Comment prouver qu'un ancien message reste lisible après l'évolution ?
+
+## Dimension théorique
+
+Votre sujet porte un aspect théorique formalisable : la compatibilité de schéma (backward, forward, full) et le versionnement des contrats. Approfondissez-le : classez votre évolution selon la compatibilité qu'elle exige, et justifiez l'ordre de déploiement qui en découle. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : l'interopérabilité et la qualité logicielle sont des thèmes « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
 
 ## Preuves attendues
 

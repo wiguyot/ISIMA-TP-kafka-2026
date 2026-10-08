@@ -8,17 +8,23 @@ Le pipeline actuel contrôle la forme d'un paiement, prend une décision puis pu
 
 Un contrôle **asynchrone** est réalisé par un service séparé qui lit un événement Kafka, effectue sa règle, puis publie un nouveau résultat. Il n'est pas exécuté directement par le producteur du paiement. Cette séparation permet d'ajouter une règle sans bloquer l'ensemble du pipeline, mais elle impose de préserver la traçabilité et l'ordre métier.
 
+Dans une application réelle, la décision dépend aussi d'un état externe évolutif — le solde d'un compte bancaire, par exemple — et pas seulement de la forme du paiement. Ce sujet propose, en extension, de simuler de tels comptes.
+
 ## Votre mission
 
 Ajoutez une étape de contrôle métier asynchrone au pipeline. Cette étape doit consommer un événement existant, publier un résultat explicite, préserver la trace de la transaction et rester observable de bout en bout.
 
-Vous choisissez la règle métier, mais elle doit être justifiée et ne pas se réduire à une simple vérification de format déjà faite par le validateur.
+Vous choisissez la règle métier, mais elle doit être justifiée et ne pas se réduire à une simple vérification de format déjà faite par le validateur. L'[extension](#extension--simuler-des-comptes-bancaires) en fin de fiche propose une instance particulièrement réaliste de cette règle : le contrôle de solde.
 
 ## Réalisation minimale attendue
 
 Créez un service consommateur autonome, son câblage Docker et ses contrats d'entrée et de sortie. Il doit publier une décision traçable, être intégré au flux final ou à sa persistance, exposer au moins une métrique et disposer de tests pour les décisions acceptée, rejetée et rejouée.
 
 ## Actions à réaliser
+
+Avant toute modification, formulez votre garantie cible en une phrase, sous la forme : « [le comportement] ne doit pas [l'effet indésirable], prouvé par [la mesure] ».
+
+Ensuite, vous devez :
 
 1. Définissez la règle métier et les données nécessaires à son évaluation.
 2. Décrivez un exemple de paiement accepté et un exemple de paiement rejeté par cette nouvelle règle.
@@ -28,6 +34,25 @@ Créez un service consommateur autonome, son câblage Docker et ses contrats d'e
 6. Intégrez le résultat à la persistance ou au flux `outcome` sans casser les comportements existants.
 7. Ajoutez les métriques et les tests couvrant le cas accepté, le cas rejeté et le rejeu d'un message.
 
+## Extension : simuler des comptes bancaires
+
+Le générateur pioche déjà émetteur et bénéficiaire dans un référentiel de clients ([`infra/reference/reference-clients.json`](../../infra/reference/reference-clients.json)), et les messages Pix portent les identifiants de comptes (`emitter_account_id`, `beneficiary_account_id`). L'extension consiste à donner à ces comptes une vie propre, indépendante des Pix :
+
+- **Étendre le référentiel** : ajouter à chaque compte un solde initial, en s'assurant que toute référence bancaire d'un Pix correspond à un compte existant du référentiel ;
+- **Simuler des mouvements de compte** (dépôts, retraits) publiés comme événements dans Kafka, indépendants du flux Pix ;
+- **Maintenir un état de solde** par compte, alimenté par ces mouvements ;
+- **Rendre la règle de contrôle dépendante de cet état** : un Pix valide en forme peut être rejeté pour `insufficient_balance` — un rejet métier légitime, décalé dans le temps, sur un paiement dont la forme est correcte.
+
+Cette extension transforme la nature du problème, et c'est l'objet de l'étude demandée :
+
+1. **Ordre et partitionnement** : un Pix engage deux comptes (émetteur et bénéficiaire). Quelle clé garantit l'ordre par compte, alors qu'un ordre global n'est pas atteignable ? Deux Pix simultanés sur le même compte créent une course entre lecture du solde, vérification et débit.
+2. **Idempotence du solde** : en `at-least-once`, un message rejoué débite deux fois. Le solde est un agrégat mutable où l'idempotence (voir le sujet 1) devient indispensable, pas optionnelle.
+3. **Causalité temporelle** : un Pix peut arriver avant le mouvement qui l'aurait rendu payable. Faut-il rejeter définitivement, ré-évaluer plus tard, ou mettre en attente ? Distinguez temps de l'événement et temps de traitement.
+4. **Deux natures de rejet** : le rejet de forme (synchrone, par le validateur) et le rejet métier (asynchrone, différé) n'ont ni le même moment ni le même sens. Que devient la chaîne `outcome` ? Le persister doit-il les distinguer ?
+5. **Invariant auditable** : chaque solde doit rester explicable par l'historique des événements le composant. Définissez comment vérifier cet invariant — c'est le même esprit que la reconstruction du sujet 10.
+
+Opérationnellement, cette extension ajoute un nouveau flux d'événements (donc un topic et un producteur), une table de soldes à intégrer au démarrage et au reset de la plateforme, et un segment supplémentaire sur le chemin critique, à mesurer contre le SLA de décision.
+
 ## Questions de conception
 
 - Pourquoi ce contrôle doit-il être un nouveau service plutôt qu'une règle ajoutée au validateur existant ?
@@ -35,6 +60,13 @@ Créez un service consommateur autonome, son câblage Docker et ses contrats d'e
 - Comment évitez-vous que deux consommateurs donnent deux décisions contradictoires ?
 - Quel topic transporte le résultat final et quel composant en est responsable ?
 - Comment vérifiez-vous que le nouveau service ne casse ni l'ordre relatif ni la persistance ?
+- Pour un contrôle dépendant d'un solde : quelle clé de partitionnement garantit l'ordre des opérations sur un même compte, alors qu'un Pix engage deux comptes ?
+- Que devient un Pix accepté par le validateur puis rejeté plus tard pour solde insuffisant : quel statut, quel topic, quelle trace pour la transaction ?
+- Où doit vivre l'état du solde — table PostgreSQL, topic compacté, les deux — et quelles sont les conséquences de chaque choix sur la reconstruction et l'audit ?
+
+## Dimension théorique
+
+Votre sujet porte des aspects théoriques formalisables : l'ordre partiel des événements (ordre par partition, ordre métier), la coordination de décisions concurrentes, et — si vous réalisez l'extension bancaire — la cohérence d'un état répliqué sous événements concurrents (agrégat mutable alimenté par un flux, lectures et écritures entrelacées). Approfondissez-les : formalisez ce que « préserver l'ordre métier » signifie dans votre architecture, ce qui peut arriver en son absence, et ce que garantit votre mise à jour de solde face à deux Pix concurrents sur le même compte. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la coordination de systèmes (multi-agents, chorégraphie) est un thème « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
 
 ## Preuves attendues
 
@@ -45,9 +77,16 @@ Créez un service consommateur autonome, son câblage Docker et ses contrats d'e
 - une explication du partitionnement et des garanties retenues ;
 - une vérification que les comportements existants restent fonctionnels.
 
+Si vous réalisez l'extension bancaire :
+
+- une démonstration d'un Pix valide en forme et rejeté pour solde insuffisant, avec sa trace complète ;
+- un état des soldes cohérent, chaque solde étant vérifiable par l'historique des mouvements et des Pix qui le composent ;
+- une description des impacts sémantiques observés : ordre, idempotence du solde, causalité temporelle, coexistence des deux natures de rejet.
+
 ## Ressources
 
 - [Activité 10 — Architecture événementielle](../activite-10-synthese-architecture-evenementielle.md)
 - [Contrats d'événements](../../docs/contrats-evenements/)
+- [Référentiel clients et comptes](../../infra/reference/reference-clients.json)
 - [Architecture de la chaîne de traitement](../../docs/architecture/container-interactions.md)
 - [Atelier avancé](../pour-aller-plus-loin/realisation-des-tp.md)

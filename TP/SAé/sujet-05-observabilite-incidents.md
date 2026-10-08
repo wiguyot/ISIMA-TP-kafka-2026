@@ -24,6 +24,10 @@ Ajoutez un élément d'observabilité qui n'existe pas encore ou qui relie des d
 
 ## Actions à réaliser
 
+Avant toute modification, formulez votre garantie cible en une phrase, sous la forme : « [le comportement] ne doit pas [l'effet indésirable], prouvé par [la mesure] ».
+
+Ensuite, vous devez :
+
 1. Recensez les informations déjà visibles dans la météo, Grafana, `tp-kafka.sh` et `tp-db.sh`.
 2. Définissez, pour chaque famille d'incident, les symptômes attendus, les hypothèses possibles et la vérification suivante.
 3. Provoquez un retard consommateur et un retard de réplication.
@@ -38,6 +42,10 @@ Ajoutez un élément d'observabilité qui n'existe pas encore ou qui relie des d
 - Quel indicateur relie le mieux un signal technique à son impact sur un paiement Pix ?
 - Quelles métriques doivent être lues ensemble pour conclure sur la persistance ?
 - Quel signal est assez fiable pour déclencher une alerte ?
+
+## Dimension théorique
+
+Votre sujet porte un aspect théorique formalisable : la détection d'anomalies dans des séries temporelles (seuils statiques contre méthodes adaptatives). Approfondissez-le : justifiez la méthode de détection qui déclenche vos diagnostics et sa robustesse aux faux positifs. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la détection d'anomalies en flux est un thème « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
 
 ## Preuves attendues
 

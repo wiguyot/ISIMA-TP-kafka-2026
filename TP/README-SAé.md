@@ -7,17 +7,19 @@ Les sujets détaillés sont disponibles dans le [portefeuille de SAÉ](SAé/READ
 ## 1. Préparez-vous
 
 1. Réalisez les [activités 01 à 10](README.md) pour maîtriser les bases de Kafka.
-2. Si votre sujet porte sur les garanties de livraison, réalisez aussi les TP 01 à 03.
-3. Démarrez la plateforme et vérifiez qu'un flux nominal fonctionne avant toute modification.
+2. Si votre sujet porte sur les garanties de livraison, la reconstruction ou l'exactly-once, réalisez aussi les TP 01 à 03.
+3. Si votre sujet porte sur la sécurité ou le partage du cluster, lisez la configuration Kafka du projet (`docker-compose.yml`, `infra/kafka/`).
+4. Si votre sujet porte sur les modèles de trafic, maîtrisez l'activité 09 et les scénarios de charge avant de modifier le shaper.
+5. Démarrez la plateforme et vérifiez qu'un flux nominal fonctionne avant toute modification.
 
 ## 2. Choisissez votre sujet
 
 1. Consultez le [portefeuille](SAé/README.md).
 2. Choisissez un sujet principal adapté au niveau du groupe, au temps disponible et aux prérequis.
-3. Lisez entièrement la problématique associée avant de modifier le code.
+3. Lisez entièrement la problématique associée avant de modifier le code, y compris sa section « Dimension théorique » : l'approfondissement de cet aspect théorique fait partie de l'évaluation. Consultez [l'analyse recherche](SAé/analyse-recherche-limos.md) dès le choix du sujet pour identifier l'aspect, l'axe LIMOS concerné et le travail attendu.
 4. Formulez, en une phrase, le problème que votre groupe va résoudre et la garantie recherchée.
 
-Un sujet ne peut être choisi par plusieurs groupes. Un groupe doit être constitué de 4 personnes environ. 
+Un sujet ne peut être choisi par plusieurs groupes. Un groupe doit être constitué de quatre personnes au minimum ; au-delà, le périmètre du sujet doit augmenter en conséquence.
 
 ## 3. Réalisez votre SAÉ
 
@@ -36,6 +38,18 @@ Votre rendu doit permettre à une autre personne de reproduire votre conclusion.
 - les commandes et le protocole d'essai ;
 - les résultats de tests et les compteurs observés ;
 - une conclusion qui décrit la garantie obtenue et ses limites.
+
+## 5. Publiez votre projet sur GitHub
+
+Dès la première séance, créez un **fork privé** du dépôt de la plateforme [`ISIMA-TP-kafka-2026`](https://github.com/wiguyot/ISIMA-TP-kafka-2026) et travaillez-y : il sert de rendu final et de support à la soutenance.
+
+1. Créez le fork en visibilité **privée** (option de visibilité au moment du fork), puis invitez **williamguyotlenat@icloud.com** comme collaborateur.
+2. Publiez la plateforme avec vos évolutions : code, configuration, migrations, scripts, note de conception et preuves. Ajoutez un `README` : sujet, garantie visée, démarche pour lancer la plateforme et rejouer les essais.
+3. Committez régulièrement avec des messages explicites : l'historique fait partie de l'évaluation.
+4. Vérifiez que le `.gitignore` exclut bien `infra/kafka/secrets/` et `runtime/` avant la première publication.
+5. **La veille de la soutenance** : passez le fork en visibilité **publique** et transmettez son URL à l'enseignant — un fork privé, vide ou inaccessible à ce moment équivaut à un rendu manquant.
+
+Les détails (contenu attendu, règles d'évaluation) figurent dans la section « Rendu sur GitHub » du [portefeuille de SAÉ](SAé/README.md).
 
 ## Règles importantes
 

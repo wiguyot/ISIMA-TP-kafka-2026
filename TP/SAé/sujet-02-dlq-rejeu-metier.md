@@ -29,6 +29,10 @@ Implémentez un statut de suivi de rejet, les champs de traçabilité associés 
 
 ## Actions à réaliser
 
+Avant toute modification, formulez votre garantie cible en une phrase, sous la forme : « [le comportement] ne doit pas [l'effet indésirable], prouvé par [la mesure] ». Les sujets 1 et 11 en donnent des exemples.
+
+Ensuite, vous devez :
+
 1. Recensez les variantes invalides existantes et identifiez où elles sont détectées dans la chaîne.
 2. Définissez une taxonomie de rejets adaptée au projet. Elle doit au minimum distinguer erreur de format ou de données, erreur métier, donnée de référence incohérente, dépassement de délai et incident technique.
 3. Pour chaque catégorie, documentez la décision attendue : rejet définitif, correction possible, investigation nécessaire ou rejeu autorisé.
@@ -46,6 +50,10 @@ Implémentez un statut de suivi de rejet, les champs de traçabilité associés 
 - Quelle différence faites-vous entre corriger un Pix et rejouer le même Pix inchangé ?
 - Comment limitez-vous le nombre de tentatives tout en gardant une trace des essais ?
 - Quel événement ou quelle donnée permet de déclarer le dossier définitivement clos ?
+
+## Dimension théorique
+
+Votre sujet porte un aspect théorique formalisable : les politiques de retry (backoff, limite de tentatives, prévention des boucles) et la classification des erreurs. Approfondissez-le : justifiez votre taxonomie de rejets et votre politique de réessai par des critères formalisés (probabilité de correction, coût du rejeu, risque de boucle). Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : les politiques de réessai se formalisent en processus de décision, méthodologie de l'axe [ODPS](https://www.limos.fr/axes/3) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
 
 ## Preuves attendues
 

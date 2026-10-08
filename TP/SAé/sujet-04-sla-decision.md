@@ -18,6 +18,10 @@ Implémentez un mécanisme automatisé qui rend le risque de dépassement SLA ex
 
 ## Actions à réaliser
 
+Avant toute modification, formulez votre garantie cible en une phrase, sous la forme : « [le comportement] ne doit pas [l'effet indésirable], prouvé par [la mesure] ».
+
+Ensuite, vous devez :
+
 1. Exécutez un flux nominal et relevez le débit, le lag, le délai de décision et le nombre de dépassements SLA.
 2. Provoquez un retard avec `consumer_lag` ou un pic de trafic.
 3. Expliquez pourquoi le pipeline prend du retard et à quel moment ce retard devient un dépassement de délai métier.
@@ -32,6 +36,10 @@ Implémentez un mécanisme automatisé qui rend le risque de dépassement SLA ex
 - Faut-il traiter tous les Pix dans l'ordre, ou certains peuvent-ils être priorisés ?
 - Que doit-il se passer lorsqu'un paiement dépasse son délai : rejet, alerte, traitement tardif ou autre décision ?
 - Comment vérifiez-vous que l'amélioration ne déplace pas simplement le problème vers PostgreSQL ?
+
+## Dimension théorique
+
+Votre sujet porte des aspects théoriques formalisables : la loi de Little (relation entre lag, débit et délai), les percentiles contre la moyenne pour mesurer un SLA, et le comportement d'un système quand le taux d'occupation approche 1. Approfondissez-les : formalisez la relation lag/délai de votre pipeline et vérifiez-la expérimentalement. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la théorie des files d'attente et l'évaluation de performances sont le cœur de l'axe [ODPS](https://www.limos.fr/axes/3) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
 
 ## Preuves attendues
 

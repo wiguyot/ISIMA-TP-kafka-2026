@@ -1,6 +1,6 @@
 # Sujet 1 — Idempotence entre Kafka et PostgreSQL
 
-Ce sujet fait partie du portefeuille de SAÉ Kafka. Consultez le [choix des sujets](README.md) avant de commencer.
+Ce sujet fait partie du [portefeuille de SAÉ](README.md).
 
 ## Situation
 
@@ -113,6 +113,10 @@ Cette architecture et ses compromis sont détaillés dans le [design Inbox/Outbo
 - Quelle garantie apportez-vous réellement, et quelle limite reste présente ?
 
 Les scripts, les dashboards et les perturbations réseau ne servent pas seulement à faire une démonstration. Ils doivent vous permettre de produire des preuves reproductibles de vos réponses.
+
+## Dimension théorique
+
+Votre sujet porte un aspect théorique formalisable : les sémantiques de livraison (at-most-once, at-least-once, exactly-once) et le pattern Inbox/Outbox. Approfondissez-le : formalisez la « zone d'incertitude » entre écriture PostgreSQL et commit d'offset, et situez votre garantie par rapport au concept d'`effectively once`. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : les thèmes « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS travaillent sur l'exécution fiable de services. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
 
 ## Preuves attendues
 
