@@ -18,9 +18,15 @@ Construisez une lecture d'incident qui distingue au moins trois situations :
 
 Votre objectif n'est pas seulement d'afficher des métriques. Vous devez aider une personne qui découvre l'incident à passer d'un symptôme à un diagnostic vérifiable.
 
+## Socle fourni et contribution nouvelle
+
+La météo, Grafana, les sondes Kafka/PostgreSQL et plusieurs alertes existent déjà. Votre contribution est une règle ou un outil qui relie ces signaux pour lever une ambiguïté mesurée, avec une vérification indépendante de la cause.
+
 ## Réalisation minimale attendue
 
-Ajoutez un élément d'observabilité qui n'existe pas encore ou qui relie des données aujourd'hui séparées : métrique dérivée, alerte `service-health`, panneau Grafana ou commande de diagnostic. Il doit permettre de distinguer automatiquement au moins deux causes plausibles d'un même symptôme et être vérifié par un scénario d'incident rejouable.
+Ajoutez une métrique dérivée, une alerte, une vue ou une commande de diagnostic. Couvrez les trois situations de la mission, dont une dégradation ou une indisponibilité PostgreSQL. Distinguez automatiquement au moins deux causes plausibles d'un même symptôme ; si les données ne permettent pas de trancher, rendez le diagnostic « indéterminé » et indiquez la vérification suivante.
+
+Automatisez les incidents et un témoin nominal, puis mesurez justesse du diagnostic, délai de détection et faux positifs. Vérifiez aussi la fraîcheur des sondes : le système d'observation peut être affecté par l'incident.
 
 ## Actions à réaliser
 
@@ -30,10 +36,14 @@ Ensuite, vous devez :
 
 1. Recensez les informations déjà visibles dans la météo, Grafana, `tp-kafka.sh` et `tp-db.sh`.
 2. Définissez, pour chaque famille d'incident, les symptômes attendus, les hypothèses possibles et la vérification suivante.
-3. Provoquez un retard consommateur et un retard de réplication.
+3. Provoquez un retard consommateur, une dégradation de réplication et un incident PostgreSQL ; ajoutez un essai nominal pour contrôler les faux positifs.
 4. Construisez ou améliorez une vue, un indicateur ou une règle de diagnostic qui supprime une ambiguïté réelle.
 5. Vérifiez chaque conclusion contre Kafka et PostgreSQL, pas seulement contre un dashboard.
 6. Rédigez un guide de diagnostic qu'un autre groupe peut suivre pendant un incident.
+
+## Extensions facultatives
+
+Comparez des seuils fixes à une détection adaptative. Une méthode d'apprentissage n'est pas exigée pour le minimum ; une règle explicite, justifiée et évaluée suffit.
 
 ## Questions de conception
 
@@ -45,7 +55,7 @@ Ensuite, vous devez :
 
 ## Dimension théorique
 
-Votre sujet porte un aspect théorique formalisable : la détection d'anomalies dans des séries temporelles (seuils statiques contre méthodes adaptatives). Approfondissez-le : justifiez la méthode de détection qui déclenche vos diagnostics et sa robustesse aux faux positifs. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la détection d'anomalies en flux est un thème « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez les hypothèses de cause, les observations qui les discriminent et le cas indéterminé. Justifiez vos seuils et mesurez délai de détection, faux positifs et erreurs de diagnostic sur des incidents connus. La détection adaptative est une extension, pas une exigence du minimum. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 

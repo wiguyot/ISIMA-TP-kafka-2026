@@ -4,64 +4,82 @@ Ce sujet fait partie du [portefeuille de SAÉ](README.md).
 
 ## Situation
 
-`./stop.sh` supprime les volumes : les données PostgreSQL sont perdues. Mais Kafka conserve les messages pendant sa rétention, et le pipeline publie des événements qui décrivent chaque étape du paiement : message reçu, contrôlé, décision, rejet éventuel et résultat final.
+Une base PostgreSQL perdue peut être reconstruite si les événements nécessaires sont encore disponibles et si la projection est définie. Il faut démontrer cette propriété sur le contenu métier, avec une borne précise du journal.
 
-La question du sujet : **la base de données est-elle un état reconstruisible, ou une source de vérité irremplaçable ?** Une architecture événementielle prétend souvent que Kafka permet de rejouer l'historique ; il faut le démontrer. Et la démonstration dépend de ce qu'il reste à rejouer : disposez-vous de tous les topics, de certains seulement, ou d'un topic déjà purgé par sa rétention ? Elle dépend aussi de l'arbitre auquel on se fie : l'empreinte avant destruction suffit-elle, ou faut-il un témoin de persistance extérieur au couple Kafka/PostgreSQL ?
+**`./stop.sh` supprime aussi les volumes Kafka**, et `reset-scenario.sh` recrée les topics. Ils ne conviennent donc pas à l'expérience de perte de PostgreSQL avec conservation du journal. Préférez une base cible isolée et vide ; si vous détruisez un volume, ciblez exclusivement PostgreSQL dans un environnement dédié.
+
+## Socle fourni et contribution nouvelle
+
+Les persisters consomment déjà `validated` et `rejected` et écrivent par UPSERT. Votre contribution est une procédure de reconstruction isolée, avec un oracle d'équivalence automatisé et une vérification de complétude des journaux.
+
+Les topics ont des rôles différents :
+
+| Source | Ce qu'elle permet dans le socle actuel | Limite |
+|---|---|---|
+| `validated` + `rejected` | rejouer les décisions enregistrées vers leurs projections PostgreSQL | dépend de leur rétention et de leur complétude |
+| `raw` | refaire un traitement à partir des entrées présentes | le délai, les règles ou le référentiel peuvent avoir changé ; les corrections passent par `retry` |
+| `outcome` | retrouver les résultats clients publiés | ne contient pas tous les comptes et montants nécessaires à la projection complète |
+
+Un retraitement de `raw` longtemps après l'émission peut transformer une ancienne acceptation en rejet pour délai dépassé. Ce n'est pas une reconstruction fidèle de la décision historique.
 
 ## Votre mission
 
-Construisez une procédure de reconstruction de PostgreSQL à partir des seuls topics Kafka, puis démontrez qu'elle produit un état cohérent et idempotent. Poussez l'analyse plus loin : reconstruisez sous contrainte d'information (tous les topics, certains, un seul), proposez une politique de rétention fondée sur la criticité de chaque topic, et vérifiez le résultat grâce à un témoin de persistance extérieur à PostgreSQL. Vous devez aussi identifier honnêtement ce qui n'est pas reconstruisible.
+Reconstruisez la projection PostgreSQL des paiements acceptés et des rejets depuis les événements finaux conservés. Démontrez l'équivalence de contenu et l'idempotence, puis expliquez les limites de rétention et les données non reconstructibles.
 
 ## Réalisation minimale attendue
 
-Implémentez un script de reconstruction qui rejoue les topics vers des persisters propres, avec un protocole de comparaison de l'état avant destruction et après reconstruction : comptages par table, cohérence entre `validated`, `rejected` et `outcome`. Le protocole doit échouer explicitement si l'état reconstruit diverge de l'état initial.
+Implémentez un script qui lit `validated` et `rejected` vers des persisters configurés pour une base cible vide. Utilisez de nouveaux groupes de consommation, une lecture depuis les premiers offsets disponibles et une borne de fin enregistrée par partition. Le script doit échouer si la projection diverge ou si le journal nécessaire est incomplet.
+
+La comparaison porte sur les identités et les valeurs métier normalisées. Excluez uniquement les champs techniques explicitement justifiés, tels que séquences locales ou horodatages d'audit de reconstruction ; ne masquez pas les décisions et leurs horodatages historiques. Les volumes seuls ne prouvent pas l'équivalence.
 
 ## Actions à réaliser
 
-Avant toute modification, formulez votre garantie cible en une phrase, sous la forme : « [le comportement] ne doit pas [l'effet indésirable], prouvé par [la mesure] ».
+1. Définissez la projection : clés des paiements, clés des tentatives/rejets, champs conservés, règle en présence de plusieurs événements pour une même clé.
+2. Arrêtez les écritures de la campagne ou isolez une campagne et fixez ses bornes par partition. Conservez le manifeste attendu, les offsets de début/fin et les empreintes du contenu métier.
+3. Vérifiez que la rétention contient encore les événements nécessaires. Atteindre les premiers offsets disponibles ne prouve pas que l'historique est complet.
+4. Préparez une base cible PostgreSQL vide et séparée, avec le schéma et le référentiel nécessaires, en conservant Kafka. Documentez les connexions pour éviter une écriture dans la base source.
+5. Lancez la reconstruction avec des groupes neufs et attendez les bornes de fin avec un timeout.
+6. Comparez automatiquement les ensembles de clés et les valeurs de toutes les projections du périmètre ; échouez sur toute divergence.
+7. Rejouez une seconde fois et vérifiez que le contenu métier reste identique.
+8. Mesurez les durées et documentez les données hors journal : référentiel, configuration, éventuels agrégats et données administratives.
 
-Ensuite, vous devez :
+Pour une campagne complète drainée, sans contrôle supplémentaire ni révision, l'ensemble des **tentatives** acceptées et celui des tentatives rejetées sont disjoints ; leur union correspond aux tentatives terminales attendues dans `decision` et `outcome`. Cette égalité doit porter sur les identités, après déduplication selon le contrat, et non sur les offsets ou les publications brutes. `validated` ne désigne que les acceptations : l'égalité « validated = valid + rejected » est incorrecte.
 
-1. Établissez une empreinte de référence : comptages par table, sommes contrôlées, invariants métier (`validated` = `valid` + `rejected`, etc.).
-2. Détruisez le volume PostgreSQL, recréez les conteneurs, puis rejouez les topics depuis le début.
-3. Vérifiez la cohérence de l'état reconstruit contre l'empreinte de référence.
-4. Identifiez les événements qui ne produisent pas d'écriture PostgreSQL et analysez leur impact sur la reconstruction.
-5. Déterminez l'impact de la fenêtre de rétention : que se passe-t-il si un topic a déjà purgé ses anciens messages ?
-6. Mesurez le temps de reconstruction selon le volume de messages et déduisez-en une limite opérationnelle.
-7. Documentez la procédure complète : empreinte, destruction, rejeu, vérification, durée attendue.
-8. Construisez une matrice de reconstruction par sous-ensemble de topics : rejouez avec tous les topics, puis avec des sous-ensembles choisis — `raw` seul (le journal complet), `outcome` seul (l'état final sans l'histoire), `validated` + `rejected` (ce que voient les persisters) — et dites pour chaque cas ce qui est reconstruit fidèlement, ce qui se dégrade, ce qui devient impossible.
-9. Classez les topics du pipeline selon leur criticité pour la reconstruction : lesquels portent une information irremplaçable, lesquels ne portent que des étapes dérivables d'un autre ? Déduisez-en une proposition de rétention par topic — rétention longue sur les critiques, plus courte sur les dérivables — et justifiez l'arbitrage coût de stockage contre risque de perte de reconstruisibilité.
-10. Construisez un témoin de persistance extérieur au couple Kafka/PostgreSQL (par exemple un journal `append-only` exporté hors du cluster, ou une seconde projection légère dans un autre stockage), puis utilisez-le pour vérifier de façon indépendante que le rejeu des topics conduit PostgreSQL au même état. Démontrez son apport sur le cas limite : un topic déjà purgé, où le témoin établit ce qui a été perdu et ce qui reste reconstruisible.
+## Extensions facultatives
+
+- Comparez des sous-ensembles de topics, dont `raw` et `outcome`, pour établir précisément les informations manquantes et les conditions d'un retraitement déterministe.
+- Testez une rétention insuffisante et proposez une politique par topic, en justifiant coût et perte de reconstructibilité.
+- Ajoutez un témoin extérieur au couple Kafka/PostgreSQL pour détecter les omissions. Un journal append-only ne fournit pas à lui seul une preuve de non-répudiation : explicitez son intégrité, son indépendance et son modèle de confiance.
+- Étudiez la reconstruction en présence d'écritures concurrentes avec une coupure cohérente et un protocole de rattrapage.
+
+Les preuves associées à ces extensions ne sont exigées que si l'extension est retenue.
 
 ## Questions de conception
 
-- Quelle donnée fait foi pour reconstruire une ligne : l'événement `validated`, l'événement `outcome`, ou une combinaison ?
-- Un événement rejoué deux fois crée-t-il un doublon ? Quel mécanisme l'empêche ?
-- Quels éléments de la base ne proviennent d'aucun topic (séquences, index, agrégats) ?
-- À partir de quel volume ou de quel âge la reconstruction devient-elle plus coûteuse qu'une sauvegarde classique ?
-- Quelle garantie de livraison faut-il pour que le rejeu soit fidèle, et que se passe-t-il sans elle ?
-- Quel topic unique suffit à tout reconstruire, et à quel coût de temps et de traitement ? Ce serait-il pour toutes les tables ?
-- Comment arbitrer la rétention d'un topic : ce que coûte une rétention longue contre ce que risquerait une rétention courte ? Ce calcul est-il le même pour `raw` et pour `checked` ?
-- Que prouve un témoin de persistance extérieur que l'empreinte avant/après ne prouve pas ? Qui veille sur le veilleur ?
+- Quel événement fait foi pour conserver une décision historique ?
+- Quelles tables dépendent de données absentes des topics ?
+- Quelle clé différencie paiement initial, correction et tentative de rejet ?
+- Comment détectez-vous une portion du journal déjà purgée ?
+- Existe-t-il réellement un topic unique suffisant à votre projection ?
+- Que mesurez-vous lorsque vous comparez l'état avant et après reconstruction ?
+- À quelles conditions un témoin extérieur révèle-t-il une omission ?
 
 ## Dimension théorique
 
-Votre sujet porte des aspects théoriques formalisables : l'event sourcing (l'état comme fonction dérivable du journal d'événements), la projection, et — par extension — la distinction entre journal complet et sous-journaux dérivables, ainsi que le rôle d'une archive immuable comme témoin extérieur. Approfondissez-les : formalisez votre base comme une projection des topics, caractérisez précisément ce qui n'est pas dérivable et pourquoi, et formalisez ce qu'un témoin extérieur ajoute à la vérification (indépendance de l'arbitre, non-répudiation de l'état). Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : les bases de données distribuées sont un thème « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez la projection comme une fonction du journal borné et de ses dépendances. Énoncez les conditions de déterminisme, complétude et idempotence, puis reliez chaque condition à un test ou à un contre-exemple. Comparez projection des décisions historiques et recalcul depuis les entrées. L'approfondissement théorique est encouragé ; utilisez le [guide des pistes de recherche](analyse-recherche-limos.md) pour les références et les orientations de contact.
 
 ## Preuves attendues
 
-- une empreinte avant/après montrant l'équivalence des états, ou l'explication précise des écarts ;
-- la preuve qu'un rejeu complet ne crée pas de doublon ;
-- une chronologie de reconstruction avec les durées par étape ;
-- un test automatisé rejouable qui échoue si l'état reconstruit est incohérent ;
-- la matrice des sous-ensembles de topics testés et de l'état qu'ils permettent de reconstruire ;
-- une classification de criticité des topics, la proposition de rétention qui en découle et sa justification coût/risque ;
-- la démonstration du témoin de persistance, y compris sur un cas de topic purgé où le témoin établit ce qui a été perdu ;
-- une conclusion précisant les limites : rétention dépassée, données hors topics, temps de reconstruction.
+- le périmètre de projection et les dépendances ;
+- les bornes du journal conservé et le manifeste attendu ;
+- une comparaison automatisée des identités et du contenu métier ;
+- la preuve qu'un second rejeu conserve le même état ;
+- une chronologie avec les durées et les timeouts ;
+- une conclusion explicite sur la rétention, les données hors topics et la complétude.
 
 ## Ressources
 
-- [Sujet 1 — Idempotence Kafka/PostgreSQL](sujet-01-idempotence-kafka-postgresql.md) (prérequis recommandé)
+- [Sujet 1 — Idempotence Kafka/PostgreSQL](sujet-01-idempotence-kafka-postgresql.md)
 - [Limite de `exactly-once` Kafka](../../docs/architecture/kafka-sub-exactly-once-limit.md)
-- [Reset des topics et tables](../../scripts/reset-scenario.sh)
+- [Script de reset — destructif pour le journal, à ne pas utiliser dans cette expérience](../../scripts/reset-scenario.sh)
 - [Activité 06 — Rejeu, offsets et rétention](../activite-06-rejeu-offsets-retention.md)

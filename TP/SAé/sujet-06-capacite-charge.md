@@ -24,9 +24,17 @@ L'objectif n'est pas d'annoncer une capacité universelle. Le résultat attendu 
 
 Votre qualification a aussi une finalité collective : elle produit les **valeurs de base** dont les autres SAé ont besoin pour calibrer leurs campagnes sans écraser la machine — respect d'un SLA (sujet 4), partage entre plusieurs émetteurs (sujet 12), coût du exactly-once (sujet 13), comparaison de modèles de trafic (sujet 14). Vos recommandations doivent donc être exprimées dans les réglages réels du simulateur, pas dans une unité que personne ne consomme.
 
+## Socle fourni et contribution nouvelle
+
+Les scripts de scénario, campagnes de sémantiques et métriques constituent le point de départ. Votre contribution est un outil de qualification borné, un protocole comparable et des recommandations vérifiées dans l'interface.
+
+Le shaper appelle le générateur par HTTP ; l'émission et les confirmations Kafka peuvent ralentir cette commande. Un débit demandé supérieur au débit réellement livré ne démontre pas une saturation des consommateurs. Publiez un format de rapport utilisable tôt par les autres groupes, sans attendre votre campagne finale.
+
 ## Réalisation minimale attendue
 
 Développez un script de qualification qui lance une campagne par paliers, collecte les métriques utiles et produit un rapport structuré. Il doit accepter des paramètres de charge et des critères de conformité, enregistrer le contexte du déploiement testé, puis signaler le premier palier non conforme. La campagne est **bornée dans le temps** (borne indicative : 10 minutes ; la durée de chaque palier et le nombre de paliers sont des paramètres de l'outil). À l'issue, l'outil produit automatiquement un tableau de réglages proposés pour l'interface de pilotage — scénario, `total_messages`, `rate_per_second`, `traffic_model`, sémantiques producteur et consommateur — chaque valeur accompagnée d'une justification courte et de sa nature (mesurée ou déduite avec marge). Réutilisez les scripts de scénario et les métriques existants lorsque cela est pertinent ; ne dupliquez pas le pipeline de mesure.
+
+La borne de temps donne une **qualification provisoire**, pas une capacité soutenable universelle. Si aucun palier n'échoue, indiquez « limite non atteinte dans le budget ». Si le générateur ne livre pas la charge ou si le drainage dépasse son timeout, indiquez la limite de l'essai sans inventer un seuil de capacité.
 
 ## Actions à réaliser
 
@@ -38,12 +46,16 @@ Ensuite, vous devez :
 2. Relevez automatiquement, ou documentez dans le rapport, le contexte du test : version du projet, configuration des services, nombre de partitions et de workers, ressources allouées aux conteneurs, machine et date de l'essai.
 3. Construisez une campagne par paliers : charge initiale faible, augmentation progressive du débit, puis arrêt lorsque les critères de bon fonctionnement ne sont plus respectés. Rejouez au moins un palier pour écarter une conclusion fondée sur une variation ponctuelle.
 4. Comparez au moins un trafic régulier et un trafic concentré. À chaque palier, laissez le pipeline se vider avant de conclure qu'il a absorbé la charge.
-5. Mesurez le débit réellement émis et traité, le lag maximal et son évolution, le temps de drainage, le délai de décision, la persistance finale et les ressources des principaux conteneurs.
-6. Déterminez le premier goulot observé. Distinguez au minimum : générateur incapable d'émettre la charge demandée, consommateurs applicatifs saturés, Kafka saturé ou PostgreSQL limitant la persistance. Appuyez chaque diagnostic sur des indicateurs observables, pas sur une seule métrique.
+5. Mesurez séparément débit demandé, messages remis au producteur, publications confirmées et débit traité. Ajoutez lag maximal, drainage, p95/p99 de décision avec effectifs, décisions manquantes, persistance finale et ressources. Précisez la fenêtre de chaque débit : les campagnes existantes utilisent notamment une fenêtre d'observation fixée.
+6. Déterminez le premier goulot observé, ou concluez que les mesures ne permettent pas de trancher. Distinguez générateur incapable d'émettre, consommateurs saturés, Kafka saturé et PostgreSQL limitant. Appuyez le diagnostic sur plusieurs indicateurs.
 7. Modifiez un paramètre de capacité réellement disponible dans le projet, rejouez le même cas et indiquez si le goulot s'est déplacé, a disparu ou est resté identique.
 8. Définissez la sortie opérationnelle de l'outil : le format du tableau de réglages proposés (champs du formulaire de l'interface, unités, plage de valeurs), la règle de marge de sécurité entre la limite mesurée et la valeur proposée, et la mention explicite de ce qui est mesuré contre ce qui est extrapolé. Justifiez votre marge : elle n'est ni nulle (risque de saturer dès l'usage nominal) ni arbitraire.
 9. Générez ce tableau automatiquement en fin de campagne, puis **démontrez la boucle complète** : copier les réglages dans l'interface de pilotage, lancer le scénario correspondant, vérifier que le critère de bon fonctionnement est respecté sans saturation. C'est cette boucle, pas le rapport, qui prouve l'usage opérationnel.
 10. Faites produire à votre outil un rapport exploitable par un autre groupe : contexte, protocole, données mesurées, critères retenus, premier palier non conforme, diagnostic, limites de confiance et valeurs de base recommandées.
+
+## Extensions facultatives
+
+Prolongez la qualification par des essais soutenus, comparez plusieurs machines ou automatisez la recherche du seuil. Le minimum compare trafic régulier et concentré, répète les mesures et valide une recommandation ; les autres groupes peuvent utiliser une référence provisoire documentée.
 
 ## Questions de conception
 
@@ -59,14 +71,14 @@ Ensuite, vous devez :
 
 ## Dimension théorique
 
-Votre sujet porte des aspects théoriques formalisables : les lois de saturation (pourquoi le débit ne linéarise pas avec le parallélisme, loi d'Amdahl), la distinction pic temporaire contre saturation durable, et la loi de Little appliquée au drainage. Approfondissez-les : formalisez la limite de capacité que votre campagne révèle. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : l'évaluation de performances par simulation est une méthodologie centrale de l'axe [ODPS](https://www.limos.fr/axes/3) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Définissez une enveloppe de fonctionnement avec charge réellement publiée, limite de délai et drainage borné. Étudiez les files et la saturation ; utilisez Amdahl seulement avec une décomposition et des hypothèses adaptées. Distinguez limite observée, limite non atteinte et essai limité par le générateur. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 
 - un outil ou script de qualification rejouable, avec ses paramètres documentés ;
 - un rapport décrivant le déploiement réellement testé et les critères de bon fonctionnement retenus ;
 - une campagne par paliers, ses données recueillies et une comparaison entre trafic régulier et concentré ;
-- l'identification argumentée du premier goulot observé, étayée par plusieurs indicateurs ;
+- l'identification argumentée du goulot observé, ou la justification d'une limite non atteinte ou d'un diagnostic indéterminé ;
 - une comparaison avant/après sur un paramètre de capacité ;
 - une enveloppe de fonctionnement propre au déploiement testé, avec les limites de cette conclusion ;
 - le tableau des réglages proposés pour l'interface de pilotage, chaque valeur justifiée et distinguée comme mesurée ou extrapolée avec marge ;

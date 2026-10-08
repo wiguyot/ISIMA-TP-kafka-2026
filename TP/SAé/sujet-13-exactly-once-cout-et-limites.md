@@ -15,13 +15,21 @@ Un rappel utile : `exactly-once` Kafka couvre une chaîne **Kafka vers Kafka** (
 Basculez l'ensemble de la chaîne Kafka en exactly-once, puis produisez deux démonstrations mesurées :
 
 1. ce que le mode **coûte** : débit, délai de décision, comportement sous charge ;
-2. ce que le mode **ne protège pas** : le doublon métier réapparaît dès que l'écriture PostgreSQL entre en jeu.
+2. ce que le mode **ne protège pas** : une tentative PostgreSQL peut être répétée ; l'UPSERT actuel absorbe cette répétition sans créer une seconde ligne métier.
 
 La réussite du sujet n'est pas « faire marcher le mode » : c'est de prouver où s'arrête la garantie.
 
+## Socle fourni et contribution nouvelle
+
+Le TP 03 fournit déjà l'activation de la chaîne transactionnelle, une campagne de coût et une démonstration de sa limite PostgreSQL. Les reproduire est une référence, pas une SAé complète.
+
+Votre contribution apporte des assertions automatiques sur les identités et contenus, une matrice de fenêtres de panne déterministes et une comparaison répétée du coût. L'exactly-once lie des **offsets d'entrée** à des sorties Kafka visibles ; deux messages distincts contenant le même identifiant métier ne sont pas automatiquement dédupliqués.
+
 ## Réalisation minimale attendue
 
-La chaîne `pix-validator`, `pix-decision-engine` et `pix-outcome-publisher` fonctionne en transactions exactly-once, avec un scénario automatisé qui vérifie la cohérence des messages visibles en lecture `read_committed`. Votre rendu inclut une comparaison avant/après sur le débit et le délai de décision, et un essai d'arrêt forcé d'un persister qui démontre que le rejeu crée toujours un doublon absorbé côté PostgreSQL. La garantie annoncée doit distinguer explicitement les trois segments : Kafka vers Kafka, Kafka vers PostgreSQL, effet métier.
+Sur au moins un service Kafka vers Kafka, automatisez une matrice comprenant un arrêt après production mais avant commit transactionnel, un arrêt après commit avant reprise de boucle, et une transaction avortée. Tracez le point atteint pour chaque essai, puis comparez les identités et contenus visibles en `read_committed` au manifeste attendu, après drainage borné. La chaîne complète sert au bilan nominal et au coût.
+
+Ajoutez un test de fencing avec un second producteur utilisant le même identifiant transactionnel, et distinguez ce défaut de configuration d'un rejeu normal. Répétez la comparaison de coût à charge réellement comparable, avec délais, débit et effectifs. Enfin, vérifiez le rejeu d'un persister par les tentatives auditées et le contenu métier : plusieurs tentatives ne signifient pas plusieurs effets.
 
 ## Actions à réaliser
 
@@ -31,16 +39,20 @@ Ensuite, vous devez :
 
 1. Relevez l'état de référence en `at-least-once` : débit, délai de décision, compteurs Kafka et PostgreSQL.
 2. Basculez les variables `SIMULPIX_KAFKA_PRODUCER_SEMANTICS` et `SIMULPIX_KAFKA_CONSUMER_SEMANTICS` pour les trois services transactionnels. Vérifiez qu'aucun service n'est resté dans l'ancien mode : la logique Kafka est dupliquée dans chaque service, un réglage oublié invalide la démonstration.
-3. Vérifiez que les groupes de consommateurs dédiés au mode transactionnel sont bien utilisés, et que le flux nominal circule.
+3. Relevez les groupes effectivement utilisés, leur `RUN_ID`, l'isolation des lecteurs et les identifiants transactionnels par worker. Les groupes sont associés à la campagne et au service ; leur nom ne suffit pas à prouver le mode transactionnel.
 4. Mesurez le coût : rejouez le même scénario de charge avant et après bascule, et comparez débit, délai de décision et lag.
-5. Prouvez le périmètre protégé : arrêtez brutalement un service transactionnel en pleine charge et démontrez qu'aucun doublon logique n'apparaît sur les topics de sortie.
+5. Prouvez le périmètre protégé dans les fenêtres déterministes du minimum : vérifiez la visibilité des sorties, leurs valeurs et les offsets d'entrée associés.
 6. Prouvez la limite : arrêtez un persister entre l'écriture PostgreSQL et le commit d'offset, puis montrez que le message rejoué est absorbé par l'`UPSERT` — le mode exactly-once Kafka n'a pas empêché le rejeu.
 7. Expliquez l'écart entre les offsets bruts et les messages visibles : les transactions ajoutent des marqueurs techniques, un `end_offsets` ne compte pas les messages métier.
 8. Rédigez la conclusion en trois lignes de garantie, une par segment, chacune appuyée sur un essai.
 
+## Extensions facultatives
+
+Étudiez l'amortissement par batching transactionnel ou un mode mixte pour caractériser la frontière de garantie. Les configurations at-least-once, exactly-once et les groupes de campagne doivent être explicitement séparés dans le protocole.
+
 ## Questions de conception
 
-- Pourquoi la bascule doit-elle être faite sur tous les services en même temps ? Que se passe-t-il si un seul reste en `at-least-once` ?
+- Quelle garantie de chaîne reste-t-il si un segment demeure en `at-least-once` ? Quelles conditions autorisent une migration progressive ?
 - Que protège exactement `send_offsets_to_transaction` par rapport à un commit manuel après traitement ?
 - Pourquoi les persisters ne peuvent-ils pas entrer dans la transaction Kafka ?
 - Le coût mesuré (débit, latence) est-il acceptable pour la garantie obtenue sur les topics internes ?
@@ -48,13 +60,13 @@ Ensuite, vous devez :
 
 ## Dimension théorique
 
-Votre sujet porte un aspect théorique formalisable : les transactions distribuées, le niveau d'isolation `read_committed` et le fencing des producteurs obsolètes. Approfondissez-les : formalisez la garantie exacte que `send_offsets_to_transaction` apporte à chaque segment, et situez-la par rapport au concept de consensus. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la dimension algorithmique et complexité de l'axe [MAAD](https://www.limos.fr/axes/1) du LIMOS est le point d'entrée le plus proche, mais ce thème relève surtout de références littéraires sur les systèmes distribués. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez l'atomicité des sorties Kafka et des offsets d'entrée, l'isolation read_committed et le fencing des producteurs obsolètes. Séparez cette propriété de la déduplication d'identités métier et de l'atomicité PostgreSQL. Reliez chaque assertion à une fenêtre de panne tracée et discutez le coût mesuré ; une référence au consensus seul n'explique pas la transaction. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 
 - un protocole de mesure identique avant et après bascule, avec les chiffres côte à côte ;
-- la démonstration d'absence de doublon logique sur les topics lors d'un arrêt forcé d'un service transactionnel ;
-- la démonstration que le doublon métier persiste côté PostgreSQL malgré le mode exactly-once ;
+- la matrice des fenêtres atteintes, transactions avortées et résultats visibles, ainsi qu'une preuve du fencing ;
+- la démonstration de tentatives PostgreSQL répétées et d'un effet métier unique grâce à l'UPSERT, malgré le mode exactly-once Kafka ;
 - une lecture des compteurs qui distingue offsets bruts et messages visibles en `read_committed` ;
 - une conclusion en trois garanties, une par segment, chacune avec sa preuve et sa limite.
 

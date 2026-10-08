@@ -6,7 +6,7 @@ Ce sujet fait partie du [portefeuille de SAÉ](README.md).
 
 Le pipeline actuel contrôle la forme d'un paiement, prend une décision puis publie un résultat final. Dans une application réelle, certaines décisions demandent une étape supplémentaire : repérer un montant inhabituel, contrôler une règle de conformité ou comparer le paiement à une information de référence.
 
-Un contrôle **asynchrone** est réalisé par un service séparé qui lit un événement Kafka, effectue sa règle, puis publie un nouveau résultat. Il n'est pas exécuté directement par le producteur du paiement. Cette séparation permet d'ajouter une règle sans bloquer l'ensemble du pipeline, mais elle impose de préserver la traçabilité et l'ordre métier.
+Un contrôle **asynchrone** est réalisé par un service séparé qui lit un événement Kafka, effectue sa règle, puis publie un nouveau résultat. Il n'est pas exécuté directement par le producteur du paiement. S'il conditionne l'acceptation finale, son attente et sa capacité font partie du chemin de décision et du SLA.
 
 Dans une application réelle, la décision dépend aussi d'un état externe évolutif — le solde d'un compte bancaire, par exemple — et pas seulement de la forme du paiement. Ce sujet propose, en extension, de simuler de tels comptes.
 
@@ -16,9 +16,15 @@ Ajoutez une étape de contrôle métier asynchrone au pipeline. Cette étape doi
 
 Vous choisissez la règle métier, mais elle doit être justifiée et ne pas se réduire à une simple vérification de format déjà faite par le validateur. L'[extension](#extension--simuler-des-comptes-bancaires) en fin de fiche propose une instance particulièrement réaliste de cette règle : le contrôle de solde.
 
+## Socle fourni et contribution nouvelle
+
+Validation, décision bancaire et publication de `outcome` existent déjà. Votre contribution est un contrôle métier autonome avec une autorité et un effet explicitement définis.
+
+Choisissez entre un **contrôle préalable**, dont le refus empêche l'acceptation finale, et un **audit après décision**, qui ajoute un diagnostic sans modifier une décision déjà finale. Si vous retenez l'audit, annoncez cette garantie. Pour réviser une décision finale, il faut un protocole explicite de révision et de consommation de ces versions ; deux publications contradictoires ne suffisent pas.
+
 ## Réalisation minimale attendue
 
-Créez un service consommateur autonome, son câblage Docker et ses contrats d'entrée et de sortie. Il doit publier une décision traçable, être intégré au flux final ou à sa persistance, exposer au moins une métrique et disposer de tests pour les décisions acceptée, rejetée et rejouée.
+Créez un service consommateur autonome, son câblage Docker et ses contrats. Il doit publier un résultat traçable, être intégré au flux final ou à une persistance d'audit selon l'autorité choisie, exposer une métrique et disposer de tests pour acceptation, refus et rejeu. Vérifiez que l'autorité de décision finale est unique et mesurez l'impact du retard du contrôle sur le SLA.
 
 ## Actions à réaliser
 
@@ -33,6 +39,7 @@ Ensuite, vous devez :
 5. Implémentez le consumer, le traitement et la publication de la décision.
 6. Intégrez le résultat à la persistance ou au flux `outcome` sans casser les comportements existants.
 7. Ajoutez les métriques et les tests couvrant le cas accepté, le cas rejeté et le rejeu d'un message.
+8. Décrivez le comportement si le contrôle est indisponible ou répond après l'échéance : attente bornée, refus, diagnostic incomplet ou politique justifiée.
 
 ## Extension : simuler des comptes bancaires
 
@@ -53,6 +60,8 @@ Cette extension transforme la nature du problème, et c'est l'objet de l'étude 
 
 Opérationnellement, cette extension ajoute un nouveau flux d'événements (donc un topic et un producteur), une table de soldes à intégrer au démarrage et au reset de la plateforme, et un segment supplémentaire sur le chemin critique, à mesurer contre le SLA de décision.
 
+Le débit et le crédit d'un paiement doivent respecter un invariant commun, y compris face aux rejeux et aux paiements concurrents. Fixez avec l'enseignant un périmètre d'extension réalisable avant d'ajouter une simulation bancaire complète.
+
 ## Questions de conception
 
 - Pourquoi ce contrôle doit-il être un nouveau service plutôt qu'une règle ajoutée au validateur existant ?
@@ -66,7 +75,7 @@ Opérationnellement, cette extension ajoute un nouveau flux d'événements (donc
 
 ## Dimension théorique
 
-Votre sujet porte des aspects théoriques formalisables : l'ordre partiel des événements (ordre par partition, ordre métier), la coordination de décisions concurrentes, et — si vous réalisez l'extension bancaire — la cohérence d'un état répliqué sous événements concurrents (agrégat mutable alimenté par un flux, lectures et écritures entrelacées). Approfondissez-les : formalisez ce que « préserver l'ordre métier » signifie dans votre architecture, ce qui peut arriver en son absence, et ce que garantit votre mise à jour de solde face à deux Pix concurrents sur le même compte. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la coordination de systèmes (multi-agents, chorégraphie) est un thème « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez l'ordre partiel et l'autorité de décision : quelles conditions précèdent une acceptation finale, et quelles observations n'ont qu'une valeur d'audit ? Si vous réalisez l'extension bancaire, ajoutez les invariants de débit/crédit, d'idempotence et de concurrence des soldes. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 

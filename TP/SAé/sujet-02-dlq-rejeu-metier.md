@@ -23,9 +23,17 @@ Pix invalide
 
 Votre solution doit permettre de savoir, pour chaque Pix invalide, s'il est corrigeable, définitivement rejeté, en attente d'investigation ou déjà rejoué.
 
+## Socle fourni et contribution nouvelle
+
+Les rejets métier, leur persistance, `source_transaction_id`, `retry_attempt` et les scripts de rejeu existent déjà. `replay-corrected.sh` numérote les tentatives localement à son invocation et renouvelle `event_time` et le délai ; il ne constitue pas un workflow durable de correction.
+
+Les messages des scénarios sont des objets JSON décodables. Un JSON malformé ou un type inattendu peut interrompre le validateur et rester à relire : un tel message ne dispose pas nécessairement d'une identité métier ni d'un événement `rejected`.
+
 ## Réalisation minimale attendue
 
-Implémentez un statut de suivi de rejet, les champs de traçabilité associés et un mécanisme de rejeu contrôlé. Cette évolution doit modifier au moins un contrat, un service du pipeline et la persistance PostgreSQL. Elle doit inclure des essais automatisés pour un rejet définitif et deux corrections distinctes.
+Implémentez un suivi durable des rejets et corrections : identité de correction, état, autorisation, nombre maximal de tentatives et résultat de chaque tentative. Cette évolution doit modifier au moins un contrat, un service et la persistance PostgreSQL. Deux exécutions du même rejeu doivent retrouver le même état et éviter deux effets identiques.
+
+Distinguez rejet métier et **quarantaine technique**. Rendez explicite le sort d'un message indécodable ou sans identité, identifié au minimum par topic, partition et offset : conservation du diagnostic, progression contrôlée du consommateur et absence de boucle de crash. Automatisez un rejet définitif, deux corrections différentes, une correction soumise deux fois et un message techniquement illisible.
 
 ## Actions à réaliser
 
@@ -41,6 +49,11 @@ Ensuite, vous devez :
 6. Implémentez au moins deux cas de correction réalistes, par exemple une identité Pix incohérente et une donnée de référence manquante.
 7. Assurez la traçabilité entre le Pix initial, son rejet, sa correction éventuelle, chaque tentative de rejeu et sa décision finale.
 8. Empêchez une même correction de provoquer un rejeu infini ou plusieurs résultats métier identiques.
+9. Conservez le temps initial et distinguez-le du temps de chaque tentative. Si une correction reçoit un nouveau délai, documentez-le : ce nouveau délai ne prouve pas le respect du SLA du paiement initial.
+
+## Extensions facultatives
+
+Étudiez un backoff adaptatif, l'autorisation par rôle ou un outil de correction. Le minimum exige une politique bornée et traçable ; il n'exige pas un moteur d'optimisation des retries.
 
 ## Questions de conception
 
@@ -53,13 +66,13 @@ Ensuite, vous devez :
 
 ## Dimension théorique
 
-Votre sujet porte un aspect théorique formalisable : les politiques de retry (backoff, limite de tentatives, prévention des boucles) et la classification des erreurs. Approfondissez-le : justifiez votre taxonomie de rejets et votre politique de réessai par des critères formalisés (probabilité de correction, coût du rejeu, risque de boucle). Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : les politiques de réessai se formalisent en processus de décision, méthodologie de l'axe [ODPS](https://www.limos.fr/axes/3) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez le parcours comme un automate de rejets, corrections et tentatives, avec transitions autorisées et condition de terminaison. Justifiez la limite et le backoff par des coûts et risques explicites. Un processus de décision markovien est une extension possible seulement si états, actions, transitions et coût sont définis. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 
 - une taxonomie documentée et des contrats d'événements mis à jour ;
 - un schéma du parcours d'un Pix invalide, de son entrée à sa décision finale ;
-- des essais couvrant au moins un rejet définitif et deux corrections différentes ;
+- des essais couvrant un rejet définitif, deux corrections différentes, une correction répétée et un message techniquement illisible ;
 - la preuve qu'un rejeu contrôlé conduit à un résultat final traçable ;
 - la preuve qu'une même correction ne crée pas de doublon métier ni de boucle de rejeu ;
 - des compteurs cohérents entre Kafka, PostgreSQL et les métriques de l'application.

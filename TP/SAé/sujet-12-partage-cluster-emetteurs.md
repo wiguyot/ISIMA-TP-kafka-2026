@@ -12,9 +12,17 @@ Question du sujet : si l'émetteur A subit un pic, l'émetteur B subit-il les co
 
 Introduisez deux émetteurs dans la simulation, choisissez et justifiez une organisation du partage (clé métier enrichie, topic dédié par émetteur, quotas), puis démontrez par la mesure ce que votre organisation garantit — et ce qu'elle ne garantit pas.
 
+## Socle fourni et contribution nouvelle
+
+La clé `emitter_tax_id` désigne un client payeur, pas l'établissement qui envoie les paiements. Votre contribution introduit une identité d'organisation, par exemple `issuer_id`, deux flux simultanés et une mesure séparée de leur isolation.
+
+Les générateurs peuvent produire les mêmes identifiants locaux ; rendez les `transaction_id` globalement uniques. Préservez l'identité d'organisation dans chaque contrat, notamment les constructions à liste fixe de `decision` et `outcome`. Deux appels de `run-scenario.sh` ne créent pas deux flux indépendants : ce script réinitialise la campagne.
+
 ## Réalisation minimale attendue
 
-Distinguez deux émetteurs identifiables dans le flux (champ de traçabilité ou clé de partitionnement), chargez l'un avec un pic `football_match_peak` pendant que l'autre reste nominal, et mesurez le délai de décision de chacun. Votre solution doit s'appuyer sur un choix documenté, et votre preuve doit comparer les deux flux simultanément.
+Distinguez deux organisations A et B, produisez leurs flux simultanément sans réinitialisation mutuelle et comparez **au moins deux configurations de partage des ressources**. Pour chacune, mesurez B seul, A et B nominaux, puis A en pic et B nominal. Relevez la charge réellement confirmée, p95/p99 et effectifs par organisation, décisions manquantes, débit global et drainage borné.
+
+Déclarez le critère d'isolation avant les essais et justifiez la comparaison. Un résultat montrant que le mécanisme ne protège pas B est recevable ; il doit conduire à une conclusion mesurée sur ses limites.
 
 ## Actions à réaliser
 
@@ -30,6 +38,12 @@ Ensuite, vous devez :
 6. Comparez au moins deux organisations (par exemple clé enrichie contre topic dédié) et leurs effets sur l'isolation et le débit global.
 7. Explorez les quotas Kafka comme mécanisme de régulation, si votre organisation ne suffit pas.
 
+Un quota doit cibler une identité Kafka ou un `client.id` contrôlé ; ajouter un champ JSON ne crée pas un quota. Des topics séparés partagent encore brokers, consommateurs et PostgreSQL : décrivez les ressources réellement isolées. Justifiez aussi l'ordre par client lorsque vous changez la clé de partition.
+
+## Extensions facultatives
+
+Testez les pics simultanés de A et B, ajoutez une troisième organisation ou comparez plusieurs politiques de quotas. Les campagnes peuvent partir d'une référence provisoire locale ; elles n'attendent pas la livraison du sujet 6.
+
 ## Questions de conception
 
 - Pourquoi la clé métier, telle qu'elle est utilisée aujourd'hui, ne protège-t-elle pas contre l'affamement entre émetteurs ?
@@ -40,7 +54,7 @@ Ensuite, vous devez :
 
 ## Dimension théorique
 
-Votre sujet porte un aspect théorique formalisable : l'équité d'allocation de ressources (max-min fairness, quotas) et l'isolation de performances. Approfondissez-le : définissez formellement ce que « un pic de A ne dégrade pas B » signifie, et situez votre mécanisme par rapport aux politiques d'équité connues. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : l'optimisation multi-objectif et les problèmes d'équité relèvent de l'axe [MAAD](https://www.limos.fr/axes/1) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Définissez l'équité et l'isolation entre organisations, avec une métrique par organisation et une référence B seul. Situez votre règle par rapport à une allocation max-min ou à des quotas seulement si ses propriétés correspondent au modèle. Explicitez les ressources encore partagées et les effets sur l'ordre par client. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 
@@ -48,7 +62,7 @@ Votre sujet porte un aspect théorique formalisable : l'équité d'allocation de
 - un verdict documenté pour chaque organisation testée : isolation obtenue, débit global, équilibre des partitions ;
 - la comparaison entre au moins deux organisations ;
 - une chronologie montrant le pic de A et la stabilité (ou dégradation) de B ;
-- une conclusion qui précise le compromis retenu et ses limites sous charge extrême des deux émetteurs à la fois.
+- une conclusion sur le compromis retenu et les limites des charges réellement testées ; les pics simultanés relèvent de l'extension.
 
 ## Ressources
 

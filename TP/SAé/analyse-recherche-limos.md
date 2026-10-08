@@ -1,84 +1,100 @@
-# Analyse recherche — dimensions théoriques et ancrage LIMOS
+# Choisir sa SAé et explorer les pistes du LIMOS
 
-Document de travail enseignant. Il recense, pour chaque sujet du [portefeuille de SAÉ](README.md), les aspects théoriques présents ou implicites, les domaines de recherche associés, et la proximité avec les thèmes des équipes du [laboratoire LIMOS](https://www.limos.fr) (CNRS / Université Clermont Auvergne / Mines Saint-Étienne).
+Une SAé peut partir d'une question très concrète : éviter qu'un paiement soit traité deux fois, comprendre pourquoi le système ralentit, ou remettre une base en état après une panne. Ces questions ouvrent aussi sur des idées étudiées en recherche.
 
-Objectif : identifier, pour chaque sujet, les aspects théoriques qui méritent d'être approfondis, afin de donner aux étudiants l'opportunité d'aller plus loin sur ces dimensions — et d'organiser les rencontres avec les chercheurs concernés. Cet approfondissement théorique fait partie de l'évaluation de la SAé, au même titre que la réalisation technique et les preuves expérimentales.
+Ce guide vous aide à **repérer les sujets qui vous intéressent**, puis à trouver des pistes pour mieux comprendre ce que vous allez construire. Vous pouvez commencer par les thèmes ci-dessous et lire les fiches qui vous attirent.
 
-**Important : les aspects identifiés ici ne constituent pas une liste exhaustive.** Ils sont un point de départ : un groupe peut découvrir, au fil de sa réalisation, un autre aspect théorique de son sujet — ou un sujet du portefeuille peut en révéler un qui n'est pas listé. Les groupes sont invités à signaler ces découvertes à l'enseignant (et, le cas échéant, aux chercheurs rencontrés) afin qu'elles enrichissent ce document pour les promotions suivantes.
+**L'approfondissement théorique est encouragé.** Une lecture, un petit modèle ou un échange avec un chercheur peut éclairer un choix technique et vous aider à expliquer vos résultats. Choisissez une piste en lien avec votre projet, à un niveau que vous pourrez vous approprier.
 
-## Les trois axes du LIMOS
+## Par quoi avez-vous envie de commencer ?
 
-Chaque axe est porteur de thèmes de recherche dont certains recouvrent directement les sujets du portefeuille. Pour préparer une rencontre, partez de la page de l'axe (et de sa page thèmes) plutôt que d'un membre précis :
+| Ce qui vous intéresse | Sujets à regarder |
+|---|---|
+| Comprendre les pannes et rendre les paiements fiables | [1. Idempotence](sujet-01-idempotence-kafka-postgresql.md), [10. Reconstruction](sujet-10-reconstruction-postgres-kafka.md), [13. Exactly-once](sujet-13-exactly-once-cout-et-limites.md) |
+| Enquêter sur les erreurs et aider à les résoudre | [2. Correction et rejeu](sujet-02-dlq-rejeu-metier.md), [5. Diagnostic](sujet-05-observabilite-incidents.md) |
+| Faire évoluer une application utilisée en continu | [3. Contrats d'événements](sujet-03-contrats-evenements.md), [11. Mise à jour](sujet-11-mise-a-jour-sans-interruption.md) |
+| Mesurer les performances et comprendre les ralentissements | [4. Délai de décision](sujet-04-sla-decision.md), [6. Capacité](sujet-06-capacite-charge.md), [12. Partage du cluster](sujet-12-partage-cluster-emetteurs.md) |
+| Explorer le réseau ou la sécurité | [7. Résilience réseau](sujet-07-resilience-reseau.md), [9. Accès au cluster](sujet-09-securite-acces-cluster.md) |
+| Ajouter une fonctionnalité métier à la plateforme | [8. Contrôle asynchrone](sujet-08-controle-metier-asynchrone.md) |
+| Programmer des simulations et explorer les probabilités | [14. Variabilité du trafic](sujet-14-variabilite-trafic.md) |
+| Travailler les données et construire une application avec SQL | [15. Streams et tables avec ksqlDB](sujet-15-ksqldb-streams-tables.md) |
 
-- **[MAAD](https://www.limos.fr/axes/1)** — Modèles et algorithmes d'aide à la décision : algorithmique et graphes, optimisation combinatoire, méta-modélisation et simulation (thème MOCA).
-- **[SIC](https://www.limos.fr/axes/2)** — Systèmes d'information et communication : thèmes « [Données, services, intelligence](https://www.limos.fr/themes/3) » et « [Réseaux et sécurité](https://www.limos.fr/themes/4) ».
-- **[ODPS](https://www.limos.fr/axes/3)** — Outils d'aide à la décision pour la production et les services : optimisation combinatoire, programmation mathématique, processus de décision markoviens, **simulation à événements discrets**, optimisation stochastique. Applications : manufacture, transport, santé.
+Plusieurs sujets peuvent vous plaire pour des raisons différentes. Le [portefeuille de SAé](README.md#choisir-un-sujet) complète cette première sélection avec les prérequis, la difficulté et le travail de réalisation.
 
-## Tableau d'analyse des 14 sujets
+## Les questions derrière les sujets
 
-Critères :
-- **Proximité** : proximité du sujet avec les domaines de recherche identifiés (**** = théorie déjà formalisée et directement adossable à des travaux actifs, *** = aspects formalisables avec apport réel d'un chercheur, ** = théorie existante mais surtout appliquée).
-- **LIMOS** : proximité avec les thèmes des équipes du laboratoire (**** = équipe ou thème directement concerné, *** = expertise présente sur un volet, ** = proximité indirecte, * = pas d'équipe visible).
+### Des paiements fiables, même quand un service s'arrête
 
-| Sujet | Aspects théoriques | Domaines de recherche | Proximité | LIMOS (axe, thème, ancrage) |
-|---|---|---|:---:|---|
-| [1. Idempotence](sujet-01-idempotence-kafka-postgresql.md) | Sémantiques de livraison, Inbox/Outbox, `effectively once`, identité métier | Transactions, systèmes distribués fiables (idempotency keys) | *** | **[SIC](https://www.limos.fr/axes/2)** — thème « [Données, services, intelligence](https://www.limos.fr/themes/3) » : exécution fiable de services, tests — **\*\*** |
-| [2. DLQ et rejeu métier](sujet-02-dlq-rejeu-metier.md) | Politiques de retry/backoff, limite de tentatives, boucles | Sûreté de fonctionnement, fiabilité logicielle | ** | **ODPS** — politiques de réessai formalisables en processus de décision markovien (méthodologie de l'axe) — **\*\*** |
-| [3. Contrats d'événements](sujet-03-contrats-evenements.md) | Compatibilité de schéma, versionnement, transition de déploiement | Évolution de schémas, interopérabilité, génie logiciel | ** | **[SIC](https://www.limos.fr/axes/2)** — thème « [Données, services, intelligence](https://www.limos.fr/themes/3) » : interopérabilité, qualité logicielle — **\*\*** |
-| [4. SLA de décision](sujet-04-sla-decision.md) | Loi de Little, lag ↔ délai, percentiles vs moyenne, surcharge | **Théorie des files d'attente**, évaluation de performances, capacity planning | **** | **[ODPS](https://www.limos.fr/axes/3)** — files d'attente, écoulements de flux, modélisation de la congestion dans les projets de l'axe — **\*\*\*\*** |
-| [5. Observabilité d'incidents](sujet-05-observabilite-incidents.md) | Symptôme/cause/vérification, détection d'anomalie implicite | Détection d'anomalies, root cause analysis, AIOps | *** | **[SIC](https://www.limos.fr/axes/2)** — thème « [Données, services, intelligence](https://www.limos.fr/themes/3) » : détection d'anomalies en flux, séries temporelles ; aussi **[MAAD](https://www.limos.fr/axes/1)** — **\*\*\*** |
-| [6. Capacité et charge](sujet-06-capacite-charge.md) | Saturation, goulots, drainage, limites du parallélisme (Amdahl) | **Évaluation de performances**, benchmarking méthodologique, théorie des files | **** | **[ODPS](https://www.limos.fr/axes/3)** — simulation à événements discrets et optimisation stochastique (cœur méthodologique de l'axe) — **\*\*\*\*** |
-| [7. Résilience réseau](sujet-07-resilience-reseau.md) | Réplication, ISR, quorum d'acks, chronologie de dégradation, canal à erreurs groupées (Gilbert-Elliott) pour l'intermittence | Chaos engineering, tolérance aux pannes, fiabilité réseau, modèles de canal | *** | **[SIC](https://www.limos.fr/axes/2)** — thème « [Réseaux et sécurité](https://www.limos.fr/themes/4) » : protocoles, performance réseau — **\*\*\*** |
-| [8. Contrôle métier asynchrone](sujet-08-controle-metier-asynchrone.md) | Ordre partiel, cohérence de décisions concurrentes, chorégraphie ; extension bancaire : cohérence d'un agrégat mutable (solde) sous événements concurrents | Architectures événementielles, coordination distribuée, Saga | *** | **[SIC](https://www.limos.fr/axes/2)** — thème « [Données, services, intelligence](https://www.limos.fr/themes/3) » : systèmes multi-agents, coordination — **\*\*** |
-| [9. Sécurité d'accès](sujet-09-securite-acces-cluster.md) | Moindre privilège, authentification vs autorisation | Modèles de contrôle d'accès (RBAC/ABAC), sécurité des systèmes | ** | **[SIC](https://www.limos.fr/axes/2)** — thème « [Réseaux et sécurité](https://www.limos.fr/themes/4) » : contrôle d'accès, authentification, protection des données — **\*\*\*\*** |
-| [10. Reconstruction PostgreSQL](sujet-10-reconstruction-postgres-kafka.md) | Event sourcing, état dérivable du journal, fenêtre de rétention ; sous-journaux dérivables, témoin de persistance extérieur (archive immuable) | Event sourcing / CQRS, state machine replication | *** | **[SIC](https://www.limos.fr/axes/2)** — « données massives, bases distribuées » (thème [Données, services](https://www.limos.fr/themes/3)) mais pas d'équipe journal/state machine visible — **\*\*** |
-| [11. Mise à jour sans interruption](sujet-11-mise-a-jour-sans-interruption.md) | Rebalance, message en cours, fenêtre de risque, rolling update ; extension : compatibilité de schéma et fenêtres d'incompatibilité pendant un déploiement | Group membership, protocoles de rebalance, déploiement continu, compatibilité de schéma | *** | **[ODPS](https://www.limos.fr/axes/3)** — politiques de maintenance, continuité d'activité des systèmes de production — **\*\*** |
-| [12. Partage entre émetteurs](sujet-12-partage-cluster-emetteurs.md) | Équité d'allocation, isolation, « noisy neighbor », quotas | **Équité max-min**, allocation de ressources, théorie des jeux | **** | **[MAAD](https://www.limos.fr/axes/1)** — optimisation multi-objectif, problèmes d'équité ; **[ODPS](https://www.limos.fr/axes/3)** — allocation de ressources — **\*\*\*** |
-| [13. Exactly-once](sujet-13-exactly-once-cout-et-limites.md) | Transactions distribuées, isolation, fencing des producteurs zombies | **Consensus**, traitement transactionnel, systèmes tolérants aux fautes | **** | Pas d'axe LIMOS clairement dédié aux systèmes distribués ; le plus proche : **[MAAD](https://www.limos.fr/axes/1)** (algorithmique et complexité) — **\*** |
-| [14. Variabilité du trafic](sujet-14-variabilite-trafic.md) | Processus ponctuels (Poisson non homogène, Hawkes), files, validation statistique | **Processus stochastiques**, modélisation du trafic, évaluation de performances | **** | **[ODPS](https://www.limos.fr/axes/3)** — simulation à événements discrets et optimisation stochastique ; **[MAAD](https://www.limos.fr/axes/1)** — thème [MOCA](https://www.limos.fr/themes/7) (simulation, méta-modélisation) — **\*\*\*\*** |
+- **[Sujet 1 — Idempotence](sujet-01-idempotence-kafka-postgresql.md)** : comment reconnaître un paiement déjà traité et éviter un second effet ? Vous pouvez explorer les identifiants, la mémoire du traitement et ce qui se passe entre l'écriture en base et la validation de l'offset Kafka.
+- **[Sujet 2 — Correction et rejeu](sujet-02-dlq-rejeu-metier.md)** : comment donner une seconde chance à un paiement invalide sans le rejouer indéfiniment ? Une représentation du parcours — rejet, correction, nouvelle tentative, clôture — aide à concevoir le suivi.
+- **[Sujet 10 — Reconstruction](sujet-10-reconstruction-postgres-kafka.md)** : peut-on retrouver l'état de la base à partir des messages conservés ? Le sujet invite à comprendre comment un historique produit un état, et quelles informations doivent rester disponibles.
+- **[Sujet 13 — Exactly-once](sujet-13-exactly-once-cout-et-limites.md)** : que protège réellement une transaction Kafka, et quel est son coût ? Vous pouvez étudier où commence et où s'arrête sa garantie, notamment lorsque PostgreSQL intervient.
 
-## Synthèse : quel axe LIMOS pour quels sujets
+### Une application qui évolue
 
-| Axe / thème LIMOS | Page | Sujets concernés | Angle de collaboration |
-|---|---|---|---|
-| **ODPS** | [axes/3](https://www.limos.fr/axes/3) | 4, 6, 14 — puis 2, 11 | Le partenaire naturel des sujets de charge et de trafic : simulation à événements discrets et optimisation stochastique recouvrent exactement ces thématiques |
-| **SIC — Réseaux et sécurité** | [themes/4](https://www.limos.fr/themes/4) | 9, 7 | Contrôle d'accès, authentification, performance réseau : le sujet 9 est quasi sur mesure |
-| **SIC — Données, services, intelligence** | [themes/3](https://www.limos.fr/themes/3) | 5, 3, 1, 8 | Détection d'anomalies en flux, interopérabilité, exécution fiable de services |
-| **MAAD** | [axes/1](https://www.limos.fr/axes/1) | 12, 14 | Optimisation multi-objectif et équité d'allocation ; simulation et méta-modélisation (thème [MOCA](https://www.limos.fr/themes/7)) |
+- **[Sujet 3 — Contrats d'événements](sujet-03-contrats-evenements.md)** : comment ajouter un champ sans empêcher les anciennes versions de lire les messages ? C'est une occasion d'explorer la compatibilité entre versions à partir d'exemples simples.
+- **[Sujet 8 — Contrôle asynchrone](sujet-08-controle-metier-asynchrone.md)** : comment faire travailler plusieurs services sur un même paiement ? Vous pouvez réfléchir à l'ordre des étapes et au service qui prend la décision finale.
+- **[Sujet 11 — Mise à jour](sujet-11-mise-a-jour-sans-interruption.md)** : que deviennent les paiements pendant le remplacement d'un service ? Le sujet relie déploiement, répartition du travail et durée de reprise.
 
-Remarques :
+### Des performances qui tiennent sous charge
 
-1. **Le sujet 13 est le paradoxe du tableau** : le plus riche théoriquement (consensus, transactions distribuées), le moins aligné sur le LIMOS. Sa dimension théorique passera par des références littéraires plutôt que par une rencontre.
-2. **Le sujet 14 est le pionnier du mécanisme** : il intègre déjà la rencontre avec les chercheurs comme livrable (compte rendu exigé, restitution des conclusions aux chercheurs). Les sujets \*\*\*\* pourraient suivre le même schéma.
-3. **Un sujet \*\* n'est pas un sujet faible** : le ranking mesure la proximité potentielle avec la recherche, pas la valeur du sujet. Un sujet d'ingénierie peut rester purement technique sans perte.
-4. **Les points d'entrée sont les pages d'axe et de thème**, pas des personnes : partir de [axes/3](https://www.limos.fr/axes/3) (ODPS), [themes/4](https://www.limos.fr/themes/4) et [themes/3](https://www.limos.fr/themes/3) (SIC), [axes/1](https://www.limos.fr/axes/1) (MAAD), et repérer sur la page de l'axe les membres dont les travaux s'approchent le plus.
+- **[Sujet 4 — Délai de décision](sujet-04-sla-decision.md)** : pourquoi certains paiements attendent-ils trop longtemps alors que le délai moyen semble bon ? Les files d'attente et la répartition des délais permettent de comprendre ce décalage.
+- **[Sujet 6 — Capacité](sujet-06-capacite-charge.md)** : jusqu'où votre machine peut-elle suivre le rythme ? Vous pouvez explorer les goulots d'étranglement et comprendre pourquoi ajouter des workers n'accélère pas toujours le système.
+- **[Sujet 12 — Partage du cluster](sujet-12-partage-cluster-emetteurs.md)** : comment éviter que le pic de trafic d'un établissement pénalise les autres ? Ce sujet ouvre sur le partage des ressources, les quotas et l'équité.
+- **[Sujet 14 — Variabilité du trafic](sujet-14-variabilite-trafic.md)** : deux flux de même débit moyen sollicitent-ils le système de la même façon ? Vous pouvez programmer des modèles d'arrivées et étudier l'effet des pics et des dépendances entre événements.
 
-## Familles théoriques transversales
+### Des incidents compréhensibles et des accès maîtrisés
 
-Les aspects identifiés se regroupent en quatre familles, qui structurent l'approfondissement théorique proposé aux étudiants :
+- **[Sujet 5 — Diagnostic](sujet-05-observabilite-incidents.md)** : comment passer d'une courbe inquiétante à une cause vérifiable ? Vous pouvez étudier les signaux qui distinguent les incidents et les situations où plusieurs explications restent possibles.
+- **[Sujet 7 — Résilience réseau](sujet-07-resilience-reseau.md)** : comment le pipeline réagit-il aux coupures et aux pertes de paquets ? Le sujet permet de relier les mécanismes du réseau à ce que l'application observe.
+- **[Sujet 9 — Accès au cluster](sujet-09-securite-acces-cluster.md)** : comment donner à chaque service les droits nécessaires à son travail ? Vous pouvez explorer le contrôle d'accès en reliant chaque permission à un usage concret.
 
-1. **Théorie des files et surcharge** (sujets 4, 6, 12, 14) — loi de Little, taux d'occupation, variabilité, équité max-min. La famille la plus proche des chercheurs ODPS.
-2. **Sémantiques et transactions distribuées** (sujets 1, 13, partiellement 11) — formalisation des garanties, périmètre, fencing. Amorcée par la note [`kafka-sub-exactly-once-limit.md`](../../docs/architecture/kafka-sub-exactly-once-limit.md).
-3. **Ordre, cohérence et réplication** (sujets 7, 8, 11) — ordre partiel, ISR, quorum, rebalance.
-4. **Journal d'événements et évolution** (sujets 2, 3, 10) — event sourcing, compatibilité de schéma, projections.
+### Des données qu'on peut interroger en continu
 
-La sécurité (sujet 9) forme un cinquième cas, moins théorique au sens mathématique mais bien alignée avec l'équipe SIC dédiée.
+- **[Sujet 15 — Streams et tables avec ksqlDB](sujet-15-ksqldb-streams-tables.md)** : comment transformer les événements de paiement en informations que l'on peut consulter et suivre en direct ? Vous pouvez explorer le passage d'un historique à un état, puis expliquer ce que changent un doublon, un paiement tardif ou une mise à jour du référentiel clients.
 
-## Suivi de l'approfondissement théorique
+## Une façon simple d'aller plus loin
 
-Pour chaque famille, la décision porte sur la manière dont l'approfondissement est proposé aux étudiants et évalué :
+Pour explorer une piste théorique, vous pouvez suivre ce chemin :
 
-| Famille | Décision | Statut |
-|---|---|---|
-| Files et surcharge | B — section « Dimension théorique » dans chaque fiche | Appliqué (14/14 fiches) |
-| Sémantiques et transactions | B — section « Dimension théorique » dans chaque fiche | Appliqué (14/14 fiches) |
-| Ordre et cohérence | B — section « Dimension théorique » dans chaque fiche | Appliqué (14/14 fiches) |
-| Journal d'événements | B — section « Dimension théorique » dans chaque fiche | Appliqué (14/14 fiches) |
-| Sécurité | B — section « Dimension théorique » dans chaque fiche | Appliqué (14/14 fiches) |
+1. **Partir d'une observation.** Un paiement a été rejoué, un délai a augmenté, un nouveau champ a disparu.
+2. **Poser une question précise.** Dans quelles conditions ce comportement apparaît-il ? Quelle décision technique pourrait le changer ?
+3. **Chercher une idée utile.** Une documentation, un article conseillé par l'enseignant ou un schéma peut vous aider à expliquer le mécanisme.
+4. **Revenir à votre expérience.** Comparez ce que vous aviez prévu à ce que vous observez, puis expliquez les écarts.
 
-L'option **B a été retenue et appliquée** : chaque fiche du portefeuille comporte désormais une section « Dimension théorique » qui identifie l'aspect théorique, pointe vers ce document et l'axe LIMOS concerné, et rappelle que l'approfondissement fait partie de l'évaluation. Elle n'exclut pas les autres formes, qui restent possibles en extension :
+Par exemple, pour le sujet 4, vous pouvez envoyer le même volume de paiements à rythme régulier puis par pics. Observer la file d'attente et les délais vous donnera une raison concrète de vous intéresser à la théorie des files.
 
-- **A — Fiches théoriques annexes** : une fiche courte par famille, référencée depuis chaque sujet (modèle : [`kafka-sub-exactly-once-limit.md`](../../docs/architecture/kafka-sub-exactly-once-limit.md) référencé par le sujet 1) ;
-- **C — Un sujet de plus** : une SAé « théorie des files appliquée au pipeline », pendant purement mathématique des sujets 4 et 6.
+Une expérience qui contredit votre idée de départ peut aussi enrichir le projet : elle aide à identifier les conditions dans lesquelles votre explication fonctionne. Les [attendus communs](README.md#attendus-communs) et les [limites du socle](limites-du-socle.md) vous aideront à interpréter ces résultats.
 
-Quel que soit le format retenu, l'attente d'évaluation est la même : la profondeur de l'approfondissement théorique (justification du modèle, formulation de la garantie, dialogue avec la recherche) fait partie des critères de notation de la SAé.
+## Ce qu'un échange avec le LIMOS peut vous apporter
+
+Le [LIMOS](https://www.limos.fr) est le laboratoire de recherche associé à l'ISIMA. Échanger avec un chercheur peut vous aider à choisir un modèle, trouver une lecture accessible ou imaginer une expérience qui départage deux explications.
+
+Présentez votre projet simplement : **ce que vous construisez, ce que vous observez et la question que vous vous posez**. L'enseignant pourra vous aider à préparer l'échange et à chercher un interlocuteur.
+
+Voici quelques points d'entrée à explorer avec lui :
+
+| Point d'entrée | Pistes à rapprocher de votre projet |
+|---|---|
+| [SIC](https://www.limos.fr/axes/2) | données, échanges entre services, réseaux, sécurité ; notamment les sujets 1, 3, 5, 7, 8, 9, 10 et 15 |
+| [ODPS](https://www.limos.fr/axes/3) | simulation, performances et utilisation des ressources ; notamment les sujets 4, 6, 12 et 14 |
+| [MAAD](https://www.limos.fr/axes/1) | modèles, algorithmes et allocation des ressources ; notamment les sujets 12 et 14 |
+
+Ces rapprochements servent à orienter la recherche d'un contact ; l'enseignant vous aidera à vérifier quels travaux se rapprochent de votre question. Pour le sujet 13, le bon interlocuteur dépendra de l'aspect des transactions distribuées que vous souhaitez explorer.
+
+Le **sujet 14 prévoit un échange scientifique**. Son organisation et la possibilité d'un entretien de remplacement sont expliquées dans la [fiche du sujet](sujet-14-variabilite-trafic.md).
+
+## Quelques lectures pour démarrer
+
+Choisissez une lecture qui répond à une question rencontrée pendant votre projet. Vous pouvez commencer par une documentation et demander à l'enseignant de vous accompagner dans la lecture d'un article.
+
+| Pour explorer… | Première lecture |
+|---|---|
+| Les rejeux et la frontière entre Kafka et PostgreSQL — sujets 1 et 13 | [La limite de l'exactly-once dans simul-pix](../../docs/architecture/kafka-sub-exactly-once-limit.md), puis le [principe Inbox/Outbox](../../docs/architecture/kafka-inbox-outbox-design.md) |
+| L'évolution des messages — sujets 3 et 11 | [La compatibilité des schémas, expliquée par Confluent](https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html) |
+| Ce que compte l'audit PostgreSQL — sujets 1 et 13 | [Le comportement des triggers PostgreSQL](https://www.postgresql.org/docs/current/trigger-definition.html) |
+| Le lien entre nombre de paiements en attente, débit et délai — sujets 4, 6 et 14 | John D. C. Little (1961), [A Proof for the Queuing Formula: L = λW](https://pubsonline.informs.org/doi/abs/10.1287/opre.9.3.383) |
+| Les arrivées qui favorisent d'autres arrivées — sujet 14 | Alan G. Hawkes (1971), [Spectra of some self-exciting and mutually exciting point processes](https://academic.oup.com/biomet/article-abstract/58/1/83/224809) |
+| Le passage des événements à un état consultable — sujet 15 | [Streams et tables dans ksqlDB](https://docs.confluent.io/platform/current/ksqldb/reference/sql/data-definition.html), puis [requêtes persistantes, push et pull](https://docs.confluent.io/platform/current/ksqldb/concepts/queries.html) |
+
+Gardez une trace de ce qu'une lecture ou un échange vous a apporté : une hypothèse modifiée, une expérience ajoutée, un choix mieux expliqué. C'est ainsi que l'approfondissement peut prendre une place utile dans votre SAé.

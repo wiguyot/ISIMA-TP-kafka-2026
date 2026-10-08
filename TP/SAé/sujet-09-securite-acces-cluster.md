@@ -10,11 +10,17 @@ Dans une application bancaire réelle, cette situation est inacceptable : un ser
 
 ## Votre mission
 
-Appliquez le principe de moindre privilège au cluster : chaque service doit disposer de son propre identifiant, avec des droits limités aux topics qu'il produit et consomme réellement. Votre durcissement doit être prouvé par un rejet d'accès effectif, pas par une convention documentée.
+Appliquez le principe de moindre privilège au périmètre choisi : chaque service retenu dispose d'une identité et de droits limités aux ressources nécessaires. Votre durcissement doit être prouvé par des erreurs d'autorisation explicites et un flux nominal autorisé.
+
+## Socle fourni et contribution nouvelle
+
+L'authentification SASL existe déjà avec un compte partagé ; elle n'applique pas le moindre privilège. Votre contribution porte sur des identités distinctes, l'autorisation effective et les preuves d'accès autorisé/refusé. L'activation de TLS est une extension distincte de confidentialité du transport.
 
 ## Réalisation minimale attendue
 
-Activez l'authentification par identité distincte pour au moins trois services, définissez des ACL par topic (producteur, consommateur), et documentez la matrice « service → droits ». Un test automatisé doit vérifier qu'une tentative d'accès non autorisée échoue explicitement et que le pipeline nominal continue de fonctionner après durcissement.
+Séparez les identités d'au moins trois services choisis et documentez le traitement des services hors de ce périmètre. Définissez une matrice couvrant **Topics, Groups et, en mode transactionnel, TransactionalId**, ainsi que les droits supplémentaires nécessaires aux sondes et à l'administration. Automatisez au moins deux accès interdits et un flux nominal complet après durcissement.
+
+Les groupes sont notamment suffixés par `RUN_ID` et les producteurs transactionnels par worker. Préférez les préfixes propres au rôle aux droits globaux sur tous les groupes ou toutes les transactions. Un timeout ou une panne réseau ne prouve pas un refus d'autorisation : exigez une erreur d'accès explicite.
 
 ## Actions à réaliser
 
@@ -23,11 +29,15 @@ Avant toute modification, formulez votre garantie cible en une phrase, sous la f
 Ensuite, vous devez :
 
 1. Cartographiez les flux réels : quel service produit quel topic, quel service consomme quel topic.
-2. Écrivez la matrice de droits cible : pour chaque service, ses topics de production, de consommation et les opérations autorisées.
-3. Créez un identifiant par service et remplacez l'identifiant partagé dans la configuration des conteneurs.
+2. Écrivez la matrice : identités, topics, groupes, identifiants transactionnels et opérations autorisées, y compris les outils de diagnostic.
+3. Créez un identifiant par service retenu dans le périmètre minimal et remplacez l'identifiant partagé dans sa configuration ; documentez les identités restantes.
 4. Activez le contrôle d'accès du cluster et définissez les ACL correspondant à votre matrice.
 5. Vérifiez que chaque service fonctionne avec ses seuls droits, puis qu'une tentative hors périmètre est rejetée.
 6. Documentez la procédure d'ajout d'un nouveau service : création de l'identifiant, attribution des ACL, test de validation.
+
+## Extensions facultatives
+
+Étendez la politique à tous les services, activez TLS et vérifiez la validation des certificats, ou étudiez la rotation des secrets. Déclarez séparément les garanties d'authentification, d'autorisation et de confidentialité.
 
 ## Questions de conception
 
@@ -39,7 +49,7 @@ Ensuite, vous devez :
 
 ## Dimension théorique
 
-Votre sujet porte un aspect théorique formalisable : le moindre privilège et les modèles de contrôle d'accès (qui peut faire quoi, sur quelle ressource, et comment le vérifier). Approfondissez-le : formalisez votre matrice de droits comme un modèle et prouvez son invariant (aucun service hors périmètre). Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : la sécurité (authentification, contrôle d'accès, protection des données) est le thème « Réseaux et sécurité » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez une relation entre identités, ressources et opérations autorisées. Distinguez authentification, autorisation et confidentialité. Reliez la matrice de droits aux tests positifs/négatifs ; discutez précisément les limites de la couverture du minimum et les permissions d'administration. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 

@@ -55,9 +55,17 @@ Pour approfondir cette limite, consultez [la note sur `exactly-once` Kafka](../.
 
 Vous devez rendre le traitement Kafka vers PostgreSQL **idempotent et observable** pour le périmètre que vous choisissez.
 
+## Socle fourni et contribution nouvelle
+
+Les persisters disposent déjà de clés primaires et d'UPSERT. Le [TP 01](../README.md) fournit l'audit des conflits et un arrêt déterministe après commit PostgreSQL, avant commit Kafka. Les reproduire constitue votre référence.
+
+Votre contribution doit protéger aussi le **contenu** de l'opération. Le trigger fourni trace INSERT et UPDATE, mais le script additionne actuellement ces traces : un UPSERT en conflit peut donc gonfler le compteur de tentatives. Pour vos preuves SAé, distinguez les traces INSERT des traces UPDATE et vérifiez leur sens ; voir les [limites du socle](limites-du-socle.md). L'audit ne conserve que les opérations de transactions PostgreSQL validées et ne prouve pas que deux messages de même identité sont identiques.
+
 ## Réalisation minimale attendue
 
-Faites évoluer au moins un persister et le schéma PostgreSQL associé afin de mémoriser explicitement l'identité d'une opération déjà traitée ou d'une tentative de traitement. Le code doit différencier un premier traitement d'un rejeu absorbé et exposer cette différence dans une donnée durable ou une métrique. Ajoutez un scénario automatisé qui provoque un arrêt entre l'écriture PostgreSQL et le commit Kafka.
+Faites évoluer au moins un persister et son schéma pour enregistrer l'identité et le contenu immuable, ou son empreinte canonique, **dans la même transaction PostgreSQL que l'effet métier**. Distinguez un premier traitement, un rejeu identique absorbé et un message de contenu différent portant la même identité. Définissez et exposez le traitement de ce conflit sans écraser silencieusement la donnée initiale.
+
+Automatisez les essais nominaux, le rejeu identique, le conflit de contenu, une erreur PostgreSQL et l'arrêt après commit PostgreSQL avant commit Kafka. La preuve doit vérifier les valeurs métier, l'absence de seconde application de l'effet et les offsets, avec une trace du point d'arrêt atteint.
 
 ## Actions à réaliser
 
@@ -116,12 +124,12 @@ Les scripts, les dashboards et les perturbations réseau ne servent pas seulemen
 
 ## Dimension théorique
 
-Votre sujet porte un aspect théorique formalisable : les sémantiques de livraison (at-most-once, at-least-once, exactly-once) et le pattern Inbox/Outbox. Approfondissez-le : formalisez la « zone d'incertitude » entre écriture PostgreSQL et commit d'offset, et situez votre garantie par rapport au concept d'`effectively once`. Consultez [l'analyse recherche](analyse-recherche-limos.md) pour la référence détaillée : les thèmes « Données, services, intelligence » de l'axe [SIC](https://www.limos.fr/axes/2) du LIMOS travaillent sur l'exécution fiable de services. Cet approfondissement fait partie de l'évaluation. L'aspect identifié ici n'est pas exhaustif : votre réalisation peut révéler d'autres aspects théoriques, à approfondir et à signaler également.
+Formalisez la zone entre commit PostgreSQL et commit d'offset, puis l'invariant identité/contenu/effet métier. Montrez pourquoi la mémoire de traitement et l'effet doivent partager une transaction. Reliez les rejeux identiques et les conflits de contenu à des transitions différentes ; l'Inbox/Outbox est une extension de ce modèle. Cet approfondissement est encouragé pour mieux comprendre vos choix et interpréter vos résultats. Consultez le [guide des pistes de recherche](analyse-recherche-limos.md) pour trouver des idées de lecture et préparer un échange avec l'enseignant ou le LIMOS.
 
 ## Preuves attendues
 
 - un schéma de la séquence lecture Kafka, écriture PostgreSQL et commit d'offset ;
-- un essai nominal et un essai avec arrêt forcé du persister ;
+- des essais nominaux, de rejeu identique, de conflit de contenu et d'erreur PostgreSQL, ainsi qu'un arrêt forcé dans la fenêtre annoncée ;
 - la preuve qu'un rejeu n'ajoute pas un second effet métier dans le périmètre choisi ;
 - une lecture qui distingue les lignes métier, les tentatives et les offsets Kafka ;
 - une conclusion qui précise les limites de la solution.
