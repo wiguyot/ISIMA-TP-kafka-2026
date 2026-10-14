@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 4242)
+Total output lines: 416
+
 # Simul-Pix
 
 Plateforme pédagogique locale autour de Kafka, construite autour d'un pipeline de paiements Pix simulés.
@@ -39,6 +42,8 @@ L'architecture standard de la plateforme repose désormais uniquement sur la cha
 ## Parcours pédagogique Kafka / PUB-SUB
 
 Le parcours détaillé, ses objectifs et les liens vers chaque activité et TP sont regroupés dans [TP/README.md](TP/README.md). Les [ateliers complémentaires](TP/pour-aller-plus-loin/README.md) sont facultatifs et s'adressent aux personnes qui souhaitent approfondir les incidents et l'exploitation.
+
+Pour les étudiants de **Master**, le compte-rendu du TP est à rendre **au plus tard le 25 octobre 2026**. Il est réalisé **par binôme** et remis **uniquement au format PDF**. En cas de difficulté ou de question, vous pouvez contacter William Guyot-Lénat : [william.guyot@limos.fr](mailto:william.guyot@limos.fr).
 
 ## Stack locale
 
@@ -149,33 +154,7 @@ Répartition des vues :
 - `Persistence Dashboard` : vue persistance, écarts de persistance, latences, débit d'écriture PostgreSQL, fraîcheur d'écriture et capacité de base ;
 - `Incidents` : vue orientée alertes et situations dégradées.
 
-Les mesures avancées sont facultatives ; les références sont classées dans la [documentation complémentaire](docs/README.md).
-
-Après un `./start.sh`, les compteurs Grafana restent normalement à `0` tant qu'aucun scénario n'est lancé.
-
-## Contrats et persistance
-
-Topics applicatifs :
-
-- `simulpix.transactions.raw`
-- `simulpix.transactions.checked`
-- `simulpix.transactions.decision`
-- `simulpix.transactions.validated`
-- `simulpix.transactions.rejected`
-- `simulpix.transactions.retry`
-- `simulpix.transactions.outcome`
-
-Tables PostgreSQL :
-
-- `validated_transactions`
-- `rejected_transactions`
-
-Points importants de l'implémentation actuelle :
-
-- en mode `split`, la décision métier n'est plus concentrée dans un seul conteneur mais dans la chaîne `pix-validator -> pix-decision-engine -> pix-outcome-publisher` ;
-- les transactions validées sont idempotentes sur `transaction_id` ;
-- les rejets persistés sont idempotents via `rejection_fingerprint` ;
-- les tentatives de rejeu transportent `source_transaction_id` et `retry_attempt` ;
+Les mesures avancées sont facultatives ; les référ…242 tokens truncated…ransaction_id` et `retry_attempt` ;
 - les consommateurs Kafka fonctionnent selon la sémantique choisie :
   - commit explicite après succès en `at_least_once` ;
   - commit anticipé en `at_most_once` ;

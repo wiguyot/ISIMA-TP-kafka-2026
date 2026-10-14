@@ -44,6 +44,12 @@ Ces fiches sont des lectures guidées fondées sur des résultats mesurés. Les 
 
 À la fin des TP 01 à 03, vous devez savoir distinguer les risques de perte et de doublon et préciser le périmètre d'une garantie. Le TP 04 présente ksqlDB et ses usages sur le flux simulé.
 
+## Compte-rendu du TP (étudiants de Master)
+
+Le compte-rendu porte sur le parcours de TP et est à rendre **au plus tard le 25 octobre 2026**. Il est réalisé **par binôme** et remis **uniquement au format PDF**.
+
+En cas de difficulté ou de question sur le TP, vous pouvez contacter William Guyot-Lénat à l'adresse [william.guyot@limos.fr](mailto:william.guyot@limos.fr).
+
 ## Pour continuer
 
 - [Ateliers complémentaires](pour-aller-plus-loin/README.md) : incidents, réplication, charge et perturbations réseau.
