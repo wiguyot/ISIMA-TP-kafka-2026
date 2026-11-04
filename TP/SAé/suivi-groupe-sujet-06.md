@@ -21,11 +21,11 @@ Prochaines étapes :
 
 ### 4 novembre — matin
 
-Travail réalisé :
+Travail réalisé : Muhamed absent. 
 
 Décisions et questions :
 
-Prochaines étapes :
+Prochaines étapes : présente l'architecture et comment vous vous insérez dans l'architecture.
 
 ### 6 novembre — matin
 

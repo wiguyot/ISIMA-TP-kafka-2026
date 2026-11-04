@@ -22,11 +22,11 @@ Prochaines étapes :
 
 ### 4 novembre — matin
 
-Travail réalisé :
+Travail réalisé : prise en main avec les outils OpenCode et Claude. Examen des parties utilisées pour classifier. 
 
-Décisions et questions :
+Décisions et questions : enrichir les sémanthiques de rejet. 
 
-Prochaines étapes :
+Prochaines étapes : présentation des modifications d'architecture et de sémantique. 
 
 ### 6 novembre — matin
 

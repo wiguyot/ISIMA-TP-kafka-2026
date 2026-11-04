@@ -79,7 +79,7 @@ Consigner ci-dessous les noms des étudiants affectés à chaque sujet. Rappel d
 | Sujet 7 — Résilience réseau              |                |                |                |                |
 | Sujet 8 — Contrôle métier asynchrone     |                |                |                |                |
 | Sujet 9 — Sécurité du cluster            |                |                |                |                |
-| Sujet 10 — Reconstruction PostgreSQL     |                |                |                |                |
+| Sujet 10 — Reconstruction PostgreSQL     | aya ahmamou               | ikram mokrani               |       ikram fakhraoui         |                |
 | Sujet 11 — Mise à jour sans interruption | ALLILI Ayoub               | BELMOUDEN Saad               | Zakaria taoussi               | ibrahim EL HAOURARI               |
 | Sujet 12 — Partage du cluster            |                |                |                |                |
 | Sujet 13 — Exactly-once                  |                |                |                |                |

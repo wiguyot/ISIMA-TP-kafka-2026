@@ -23,11 +23,11 @@ Prochaines étapes :
 
 ### 4 novembre — matin
 
-Travail réalisé :
+Travail réalisé : recensement des métriques existantes
 
-Décisions et questions :
+Décisions et questions : évaluation de la probabilité du risque et de sa gravité
 
-Prochaines étapes :
+Prochaines étapes : présenter un plan d'architecture et comment on insère le projet dans ce plan. Recensement des risques. 
 
 ### 6 novembre — matin
 
