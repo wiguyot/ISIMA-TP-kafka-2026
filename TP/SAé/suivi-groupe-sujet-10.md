@@ -2,7 +2,9 @@
 
 ## Étudiants
 
-- À compléter
+- aya ahmamou
+- ikram mokrani
+- ikram fakhraoui
 
 ## Sujet
 
@@ -24,7 +26,7 @@ Travail réalisé : constitution du groupe
 
 Décisions et questions :
 
-Prochaines étapes :
+Prochaines étapes : présenter l'architecture, les contraintes de rétention, les scénarios envisagés, et les modifications des délais de rétentions et politiques de compactage des topics.
 
 ### 6 novembre — matin
 

@@ -23,11 +23,11 @@ Prochaines étapes :
 
 ### 4 novembre — matin
 
-Travail réalisé :
+Travail réalisé : Ayoub, Saad présents, Taoussi et Ibrahim absents
 
 Décisions et questions :
 
-Prochaines étapes :
+Prochaines étapes : présentation de l'architecture de l'appli et les éléments sur lesquels vous allez intervenir. Quelles solutions pour ré-introduire le Control-Center de Confluent afin d'avoir des interrogation graphique de KSQLDB ainsi que des schémas logiques.
 
 ### 6 novembre — matin
 

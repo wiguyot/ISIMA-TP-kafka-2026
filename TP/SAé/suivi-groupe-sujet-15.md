@@ -22,11 +22,11 @@ Prochaines étapes :
 
 ### 4 novembre — matin
 
-Travail réalisé :
+Travail réalisé : Présent Illyes, absents Yasser et Ali
 
 Décisions et questions :
 
-Prochaines étapes :
+Prochaines étapes : présente l'architecture et comment tu t'insère dans l'architecture.
 
 ### 6 novembre — matin
 
