@@ -15,6 +15,8 @@ Diagnostiquer un incident du pipeline à partir des signaux disponibles, en dist
 
 ### 2 novembre — matin
 
+Présents / Absents :
+
 Travail réalisé : Choix du sujet par le groupe et découverte du sujet.
 
 Décisions et questions :
@@ -22,6 +24,8 @@ Décisions et questions :
 Prochaines étapes :
 
 ### 4 novembre — matin
+
+Présents / Absents :
 
 Travail réalisé : recensement des métriques existantes
 
@@ -31,13 +35,17 @@ Prochaines étapes : présenter un plan d'architecture et comment on insère le 
 
 ### 6 novembre — matin
 
-Travail réalisé :
+Présents / Absents : Ania, Madina, Anayed, Tom
+
+Travail réalisé : faible
 
 Décisions et questions :
 
-Prochaines étapes :
+Prochaines étapes : arbre de causalité, études des trois familles de problèmes, solutions/planning pour la semaine.
 
 ### 9 novembre — matin
+
+Présents / Absents :
 
 Travail réalisé :
 
@@ -47,6 +55,8 @@ Prochaines étapes :
 
 ### 9 novembre — après-midi
 
+Présents / Absents :
+
 Travail réalisé :
 
 Décisions et questions :
@@ -54,6 +64,8 @@ Décisions et questions :
 Prochaines étapes :
 
 ### 13 novembre — matin
+
+Présents / Absents :
 
 Travail réalisé :
 

@@ -15,6 +15,8 @@ Mise à jour sans interruption du pipeline (intitulé du sujet 11 dans le tablea
 
 ### 2 novembre — matin
 
+Présents / Absents :
+
 Travail réalisé : Choix du sujet par le groupe et découverte du sujet.
 
 Décisions et questions :
@@ -22,6 +24,8 @@ Décisions et questions :
 Prochaines étapes :
 
 ### 4 novembre — matin
+
+Présents / Absents :
 
 Travail réalisé : Ayoub, Saad présents, Taoussi et Ibrahim absents
 
@@ -31,13 +35,17 @@ Prochaines étapes : présentation de l'architecture de l'appli et les élément
 
 ### 6 novembre — matin
 
-Travail réalisé :
+Présents / Absents : Zakaria, Saad, Ibrahim, Ayoub
+
+Travail réalisé : presentation
 
 Décisions et questions :
 
-Prochaines étapes :
+Prochaines étapes : comment on fait l'UI qui lance les différents scénarii jusqu'à l'observabilité. 
 
 ### 9 novembre — matin
+
+Présents / Absents :
 
 Travail réalisé :
 
@@ -47,6 +55,8 @@ Prochaines étapes :
 
 ### 9 novembre — après-midi
 
+Présents / Absents :
+
 Travail réalisé :
 
 Décisions et questions :
@@ -54,6 +64,8 @@ Décisions et questions :
 Prochaines étapes :
 
 ### 13 novembre — matin
+
+Présents / Absents :
 
 Travail réalisé :
 
